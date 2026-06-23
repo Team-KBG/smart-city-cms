@@ -7,7 +7,7 @@ export const COMPLAINT_CATEGORIES = [
   "Public Safety",
 ];
 
-export const EMERGENCY_CATEGORIES = ["Fire", "Gas Leakage", "Accident"];
+export const EMERGENCY_CATEGORIES = ["Fire", "Gas Leakage", "Accident", "Transformer Blast"];
 
 export const ALL_CATEGORIES = [...COMPLAINT_CATEGORIES, ...EMERGENCY_CATEGORIES];
 

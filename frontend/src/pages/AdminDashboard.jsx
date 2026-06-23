@@ -66,11 +66,12 @@ export default function AdminDashboard() {
       <h1 className="text-3xl font-bold text-slate-900">Admin Dashboard</h1>
       <p className="mt-2 text-slate-500">Manage complaints, assign departments, and monitor emergencies.</p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatsCard title="Total Complaints" value={stats.total || 0} icon="📋" color="blue" />
         <StatsCard title="Pending" value={stats.pending || 0} icon="⏳" color="yellow" />
         <StatsCard title="Resolved" value={stats.resolved || 0} icon="✅" color="green" />
         <StatsCard title="Emergency Active" value={stats.emergency || 0} icon="🚨" color="red" />
+        <StatsCard title="Most Complained Area" value={stats.topArea || "N/A"} icon="📍" color="orange" />
       </div>
 
       {emergencies.length > 0 && (

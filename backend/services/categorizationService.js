@@ -15,6 +15,7 @@ const CATEGORY_KEYWORDS = {
   Fire: ["fire", "smoke", "burning", "flame"],
   "Gas Leakage": ["gas leak", "gas leakage", "lpg", "cylinder leak"],
   Accident: ["accident", "collision", "crash", "hit and run"],
+  "Transformer Blast": ["transformer blast", "transformer explosion", "transformer fire"],
 };
 
 /**

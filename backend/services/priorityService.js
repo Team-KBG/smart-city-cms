@@ -21,7 +21,7 @@ function detectPriority(title = "", description = "", category = "") {
 
   // Category-based defaults
   if (category === "Street Lights") return "Medium";
-  if (["Fire", "Gas Leakage", "Accident"].includes(category)) return "Critical";
+  if (["Fire", "Gas Leakage", "Accident", "Transformer Blast"].includes(category)) return "Critical";
   if (["Public Safety"].includes(category)) return "High";
 
   return "Low";

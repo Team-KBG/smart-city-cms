@@ -89,6 +89,7 @@ export default function RegisterComplaint() {
           latitude: location.latitude,
           longitude: location.longitude,
           category,
+          title: form.title,
         },
       });
       setNearby(data);
@@ -323,10 +324,7 @@ export default function RegisterComplaint() {
         {nearby?.hasSimilar && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
             <p className="font-semibold text-amber-800">
-              ⚠️ Similar complaint already registered nearby!
-            </p>
-            <p className="mt-1 text-sm text-amber-700">
-              Do you want to support the existing complaint instead?
+              Similar complaint already exists. Support existing complaint?
             </p>
             <div className="mt-3 space-y-2">
               {nearby.data.map((c) => (

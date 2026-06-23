@@ -9,7 +9,7 @@ const COMPLAINT_CATEGORIES = [
   'Public Safety',
 ];
 
-const EMERGENCY_CATEGORIES = ['Fire', 'Gas Leakage', 'Accident'];
+const EMERGENCY_CATEGORIES = ['Fire', 'Gas Leakage', 'Accident', 'Transformer Blast'];
 
 const ALL_CATEGORIES = [...COMPLAINT_CATEGORIES, ...EMERGENCY_CATEGORIES];
 
@@ -40,6 +40,7 @@ const CATEGORY_DEPARTMENT_MAP = {
   Fire: 'Public Safety Department',
   'Gas Leakage': 'Public Safety Department',
   Accident: 'Public Safety Department',
+  'Transformer Blast': 'Electricity Department',
 };
 
 const PUBLIC_VOTE_TYPES = [
