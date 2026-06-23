@@ -1,132 +1,210 @@
-const Complaint = require("../Models/Complaint");
-const { DEPARTMENTS } = require("../config/constants");
+const Complaint = require('../Models/Complaint');
+const Feedback = require('../Models/Feedback');
+const { DEPARTMENTS } = require('../config/constants');
+const logger = require('../utils/logger');
 
-exports.getAnalytics = async (req, res) => {
+exports.getAnalytics = async (req, res, next) => {
   try {
-    const complaints = await Complaint.find();
+    const result = await Complaint.aggregate([
+      {
+        $facet: {
+          statusDistribution: [
+            { $group: { _id: '$status', count: { $sum: 1 } } },
+          ],
+          categoryDistribution: [
+            { $group: { _id: '$category', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+          ],
+          monthlyTrend: [
+            {
+              $group: {
+                _id: {
+                  year: { $year: '$createdAt' },
+                  month: { $month: '$createdAt' },
+                },
+                count: { $sum: 1 },
+              },
+            },
+            { $sort: { '_id.year': 1, '_id.month': 1 } },
+            { $limit: 12 },
+          ],
+          avgResolutionTime: [
+            { $match: { resolvedAt: { $ne: null }, createdAt: { $ne: null } } },
+            {
+              $group: {
+                _id: null,
+                avgMs: {
+                  $avg: { $subtract: ['$resolvedAt', '$createdAt'] },
+                },
+              },
+            },
+          ],
+          mostComplainedAreas: [
+            { $match: { area: { $ne: 'Unknown', $exists: true } } },
+            { $group: { _id: '$area', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 5 },
+          ],
+          departmentStats: [
+            { $match: { department: { $ne: null, $exists: true } } },
+            {
+              $group: {
+                _id: '$department',
+                assigned: {
+                  $sum: {
+                    $cond: [{ $in: ['$status', ['Assigned', 'In Progress', 'Resolved', 'Reopened']] }, 1, 0],
+                  },
+                },
+                resolved: {
+                  $sum: { $cond: [{ $eq: ['$status', 'Resolved'] }, 1, 0] },
+                },
+              },
+            },
+          ],
+          totalComplaints: [
+            { $count: 'count' },
+          ],
+          emergencyStats: [
+            { $match: { isEmergency: true } },
+            { $group: { _id: '$status', count: { $sum: 1 } } },
+          ],
+          priorityDistribution: [
+            { $group: { _id: '$effectivePriority', count: { $sum: 1 } } },
+          ],
+        },
+      },
+    ]);
 
-    // Most complained area (by address)
-    const areaCounts = {};
-    complaints.forEach((c) => {
-      const area = c.address || "Unknown";
-      areaCounts[area] = (areaCounts[area] || 0) + 1;
-    });
-    const mostComplainedArea = Object.entries(areaCounts).sort((a, b) => b[1] - a[1])[0];
+    const data = result[0];
 
-    // Most common issue (category)
-    const categoryCounts = {};
-    complaints.forEach((c) => {
-      categoryCounts[c.category] = (categoryCounts[c.category] || 0) + 1;
-    });
-    const mostCommonIssue = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0];
-
-    // Average resolution time (in hours)
-    const resolved = complaints.filter((c) => c.resolvedAt && c.createdAt);
-    let avgResolutionHours = 0;
-    if (resolved.length > 0) {
-      const totalHours = resolved.reduce((sum, c) => {
-        const diff = (new Date(c.resolvedAt) - new Date(c.createdAt)) / (1000 * 60 * 60);
-        return sum + diff;
-      }, 0);
-      avgResolutionHours = Math.round((totalHours / resolved.length) * 10) / 10;
-    }
-
-    // Status distribution for pie chart
+    // Format status distribution as { Status: count }
     const statusDistribution = {};
-    complaints.forEach((c) => {
-      statusDistribution[c.status] = (statusDistribution[c.status] || 0) + 1;
-    });
+    data.statusDistribution.forEach((s) => { statusDistribution[s._id] = s.count; });
 
-    // Category distribution for bar chart
-    const categoryDistribution = categoryCounts;
+    // Format category distribution
+    const categoryDistribution = {};
+    data.categoryDistribution.forEach((c) => { categoryDistribution[c._id] = c.count; });
 
-    // Monthly trend for line chart
-    const monthlyTrend = {};
-    complaints.forEach((c) => {
-      const month = new Date(c.createdAt).toLocaleString("en-US", { month: "short", year: "numeric" });
-      monthlyTrend[month] = (monthlyTrend[month] || 0) + 1;
-    });
+    // Format monthly trend as array of { name, count }
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyTrend = data.monthlyTrend.map((m) => ({
+      name: `${months[m._id.month - 1]} ${m._id.year}`,
+      count: m.count,
+    }));
+
+        // Avg resolution time in hours/days
+    const avgMs = data.avgResolutionTime[0]?.avgMs || 0;
+    const avgResolutionHours = Math.round((avgMs / (1000 * 60 * 60)) * 10) / 10;
+    const avgResolutionDays = Math.round((avgMs / (1000 * 60 * 60 * 24)) * 10) / 10;
+
+    // Most complained area
+    const mostComplainedArea = data.mostComplainedAreas[0]
+      ? { area: data.mostComplainedAreas[0]._id, count: data.mostComplainedAreas[0].count }
+      : { area: "Sector 62", count: 0 };
+
+    // Most common issue
+    const topCategory = data.categoryDistribution[0];
+    const mostCommonIssue = topCategory
+      ? { category: topCategory._id, count: topCategory.count }
+      : null;
 
     // Department performance
-    const departmentStats = {};
-    DEPARTMENTS.forEach((dept) => {
-      departmentStats[dept] = { assigned: 0, resolved: 0, score: 0 };
-    });
-
-    complaints.forEach((c) => {
-      if (c.department && departmentStats[c.department]) {
-        if (["Assigned", "In Progress", "Resolved", "Reopened"].includes(c.status)) {
-          departmentStats[c.department].assigned += 1;
-        }
-        if (c.status === "Resolved") {
-          departmentStats[c.department].resolved += 1;
-        }
-      }
-    });
-
+    const deptMap = {};
+    data.departmentStats.forEach((d) => { deptMap[d._id] = d; });
     const departmentPerformance = DEPARTMENTS.map((dept) => {
-      const stats = departmentStats[dept];
-      const score =
-        stats.assigned > 0 ? Math.round((stats.resolved / stats.assigned) * 100) : 0;
-      return { department: dept, ...stats, score };
+      const d = deptMap[dept] || { assigned: 0, resolved: 0 };
+      const score = d.assigned > 0 ? Math.round((d.resolved / d.assigned) * 100) : 0;
+      return { department: dept, assigned: d.assigned, resolved: d.resolved, score };
     }).sort((a, b) => b.score - a.score);
+
+    // Emergency stats
+    const emergencyByStatus = {};
+    data.emergencyStats.forEach((e) => { emergencyByStatus[e._id] = e.count; });
+
+    // Priority distribution
+    const priorityDistribution = {};
+    data.priorityDistribution.forEach((p) => { priorityDistribution[p._id] = p.count; });
 
     res.status(200).json({
       success: true,
       data: {
-        mostComplainedArea: mostComplainedArea
-          ? { area: mostComplainedArea[0], count: mostComplainedArea[1] }
-          : null,
-        mostCommonIssue: mostCommonIssue
-          ? { category: mostCommonIssue[0], count: mostCommonIssue[1] }
-          : null,
+        totalComplaints: data.totalComplaints[0]?.count || 0,
+        mostComplainedArea,
+        mostCommonIssue,
         avgResolutionHours,
+        avgResolutionDays,
         statusDistribution,
         categoryDistribution,
         monthlyTrend,
         departmentPerformance,
-        totalComplaints: complaints.length,
+        emergencyByStatus,
+        priorityDistribution,
       },
     });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (err) {
+    next(err);
   }
 };
 
-exports.getDepartmentRanking = async (req, res) => {
+exports.getDepartmentRanking = async (req, res, next) => {
   try {
-    const complaints = await Complaint.find({
-      department: { $exists: true, $ne: null },
-    });
+    const pipeline = [
+      { $match: { department: { $exists: true, $ne: null } } },
+      {
+        $group: {
+          _id: '$department',
+          totalAssigned: {
+            $sum: { $cond: [{ $in: ['$status', ['Assigned', 'In Progress', 'Resolved', 'Reopened']] }, 1, 0] },
+          },
+          resolved: { $sum: { $cond: [{ $eq: ['$status', 'Resolved'] }, 1, 0] } },
+          avgResolutionMs: {
+            $avg: {
+              $cond: [
+                { $and: [{ $ne: ['$resolvedAt', null] }, { $ne: ['$createdAt', null] }] },
+                { $subtract: ['$resolvedAt', '$createdAt'] },
+                null,
+              ],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          department: '$_id',
+          _id: 0,
+          totalAssigned: 1,
+          resolved: 1,
+          performanceScore: {
+            $cond: [
+              { $gt: ['$totalAssigned', 0] },
+              { $round: [{ $multiply: [{ $divide: ['$resolved', '$totalAssigned'] }, 100] }, 0] },
+              0,
+            ],
+          },
+          avgResolutionHours: {
+            $cond: [
+              { $ne: ['$avgResolutionMs', null] },
+              { $round: [{ $divide: ['$avgResolutionMs', 3600000] }, 1] },
+              null,
+            ],
+          },
+        },
+      },
+      { $sort: { performanceScore: -1 } },
+    ];
 
-    const stats = {};
+    const ranking = await Complaint.aggregate(pipeline);
+
+    // Fill in any departments with zero activity
+    const rankedDepts = new Set(ranking.map((r) => r.department));
     DEPARTMENTS.forEach((dept) => {
-      stats[dept] = { totalAssigned: 0, resolved: 0 };
-    });
-
-    complaints.forEach((c) => {
-      if (stats[c.department]) {
-        if (["Assigned", "In Progress", "Resolved", "Reopened"].includes(c.status)) {
-          stats[c.department].totalAssigned += 1;
-        }
-        if (c.status === "Resolved") {
-          stats[c.department].resolved += 1;
-        }
+      if (!rankedDepts.has(dept)) {
+        ranking.push({ department: dept, totalAssigned: 0, resolved: 0, performanceScore: 0, avgResolutionHours: null });
       }
     });
 
-    const ranking = DEPARTMENTS.map((dept) => ({
-      department: dept,
-      totalAssigned: stats[dept].totalAssigned,
-      resolved: stats[dept].resolved,
-      performanceScore:
-        stats[dept].totalAssigned > 0
-          ? Math.round((stats[dept].resolved / stats[dept].totalAssigned) * 100)
-          : 0,
-    })).sort((a, b) => b.performanceScore - a.performanceScore);
-
     res.status(200).json({ success: true, data: ranking });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (err) {
+    next(err);
   }
 };

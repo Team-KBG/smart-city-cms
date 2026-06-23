@@ -7,7 +7,8 @@ exports.getVoteTypes = (req, res) => {
 
 exports.createOrVote = async (req, res) => {
   try {
-    const { voteType, location, description, citizenEmail } = req.body;
+    const { voteType, location, description } = req.body;
+    const citizenEmail = req.user.email;
 
     if (!voteType || !location) {
       return res.status(400).json({ success: false, message: "voteType and location are required" });
@@ -17,7 +18,12 @@ exports.createOrVote = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid vote type" });
     }
 
-    let vote = await PublicVote.findOne({ voteType, location });
+    const cleanLocation = location.trim().replace(/\s+/g, ' ');
+
+    let vote = await PublicVote.findOne({
+      voteType,
+      location: { $regex: new RegExp(`^${cleanLocation.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') }
+    });
 
     if (vote) {
       if (citizenEmail && vote.voters.includes(citizenEmail)) {
@@ -29,7 +35,7 @@ exports.createOrVote = async (req, res) => {
     } else {
       vote = await PublicVote.create({
         voteType,
-        location,
+        location: cleanLocation,
         description: description || "",
         citizenEmail: citizenEmail || "",
         voters: citizenEmail ? [citizenEmail] : [],
@@ -59,8 +65,25 @@ exports.getTopVotes = async (req, res) => {
 
 exports.getAllVotes = async (req, res) => {
   try {
-    const votes = await PublicVote.find().sort({ voteCount: -1 });
-    res.status(200).json({ success: true, count: votes.length, data: votes });
+    const { page = 1, limit = 50 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [votes, total] = await Promise.all([
+      PublicVote.find()
+        .sort({ voteCount: -1 })
+        .skip(skip)
+        .limit(Number(limit)),
+      PublicVote.countDocuments(),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: votes.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / Number(limit)),
+      data: votes,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

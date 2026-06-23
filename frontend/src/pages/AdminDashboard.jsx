@@ -3,6 +3,7 @@ import API from "../api/axios";
 import StatsCard from "../components/StatsCard";
 import StatusBadge from "../components/StatusBadge";
 import { DEPARTMENTS, STATUS_VALUES } from "../utils/constants";
+import ComplaintDetailsModal from "../components/ComplaintDetailsModal";
 
 export default function AdminDashboard() {
   const [complaints, setComplaints] = useState([]);
@@ -10,6 +11,13 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({ status: "", department: "", note: "" });
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewDetails = (complaint) => {
+    setSelectedComplaint(complaint);
+    setIsModalOpen(true);
+  };
 
   const fetchData = async () => {
     try {
@@ -78,6 +86,7 @@ export default function AdminDashboard() {
             setEditForm={setEditForm}
             handleUpdate={handleUpdate}
             handleDelete={handleDelete}
+            onViewDetails={handleViewDetails}
             highlight
           />
         </div>
@@ -96,9 +105,16 @@ export default function AdminDashboard() {
             setEditForm={setEditForm}
             handleUpdate={handleUpdate}
             handleDelete={handleDelete}
+            onViewDetails={handleViewDetails}
           />
         )}
       </div>
+
+      <ComplaintDetailsModal 
+        complaint={selectedComplaint} 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 }
@@ -112,6 +128,7 @@ function ComplaintTable({
   handleUpdate,
   handleDelete,
   highlight,
+  onViewDetails,
 }) {
   return (
     <div className={`overflow-x-auto rounded-2xl border ${highlight ? "border-red-200" : "border-slate-200"} bg-white shadow-sm`}>
@@ -131,8 +148,16 @@ function ComplaintTable({
         <tbody>
           {complaints.map((c) => (
             <tr key={c._id} className="border-b border-slate-100 hover:bg-slate-50">
-              <td className="px-4 py-3 font-mono text-xs">{c.complaintId}</td>
-              <td className="px-4 py-3">
+              <td 
+                onClick={() => onViewDetails && onViewDetails(c)} 
+                className="px-4 py-3 font-mono text-xs cursor-pointer text-blue-600 hover:underline font-bold"
+              >
+                {c.complaintId}
+              </td>
+              <td 
+                onClick={() => onViewDetails && onViewDetails(c)} 
+                className="px-4 py-3 cursor-pointer hover:text-blue-600"
+              >
                 <p className="font-medium">{c.title}</p>
                 {c.isEmergency && (
                   <span className="text-xs font-bold text-red-600">EMERGENCY</span>

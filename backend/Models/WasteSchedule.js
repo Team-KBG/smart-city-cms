@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const wasteScheduleSchema = new mongoose.Schema(
   {
@@ -10,14 +10,19 @@ const wasteScheduleSchema = new mongoose.Schema(
     day: {
       type: String,
       required: true,
+      enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
     },
     time: {
       type: String,
       required: true,
     },
+    wasteTypes: {
+      type: [String],
+      default: ['General'],
+    },
     notes: {
       type: String,
-      default: "",
+      default: '',
     },
     isActive: {
       type: Boolean,
@@ -29,44 +34,6 @@ const wasteScheduleSchema = new mongoose.Schema(
   }
 );
 
-const wastePickupRequestSchema = new mongoose.Schema(
-  {
-    citizenName: {
-      type: String,
-      required: true,
-    },
-    citizenEmail: {
-      type: String,
-      required: true,
-    },
-    address: {
-      type: String,
-      required: true,
-    },
-    area: {
-      type: String,
-      required: true,
-    },
-    wasteType: {
-      type: String,
-      default: "General",
-    },
-    preferredDate: {
-      type: String,
-      default: "",
-    },
-    status: {
-      type: String,
-      enum: ["Pending", "Scheduled", "Completed"],
-      default: "Pending",
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
+wasteScheduleSchema.index({ area: 1, isActive: 1 });
 
-const WasteSchedule = mongoose.model("WasteSchedule", wasteScheduleSchema);
-const WastePickupRequest = mongoose.model("WastePickupRequest", wastePickupRequestSchema);
-
-module.exports = { WasteSchedule, WastePickupRequest };
+module.exports = mongoose.model('WasteSchedule', wasteScheduleSchema);

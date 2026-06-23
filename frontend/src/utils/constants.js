@@ -51,4 +51,5 @@ export const LEVEL_COLORS = {
   "Bronze Citizen": "text-amber-700 bg-amber-50",
   "Silver Citizen": "text-slate-600 bg-slate-100",
   "Gold Citizen": "text-yellow-700 bg-yellow-50",
+  "Platinum Citizen": "text-purple-700 bg-purple-50",
 };

@@ -1,11 +1,72 @@
 @import "tailwindcss";
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-slate-50 text-slate-900 antialiased transition-colors duration-300;
+}
+
+html.dark body {
+  @apply bg-slate-950 text-slate-100;
 }
 
 .leaflet-container {
   width: 100%;
   height: 100%;
   z-index: 0;
+}
+
+/* Custom dark mode map styling */
+html.dark .leaflet-tile {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+/* Automatic global dark mode mappings for MERN dashboard */
+html.dark .bg-white {
+  background-color: #0f172a !important;
+}
+html.dark .bg-slate-50 {
+  background-color: #020617 !important;
+}
+html.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+}
+html.dark .border-slate-200 {
+  border-color: #1e293b !important;
+}
+html.dark .border-slate-300 {
+  border-color: #334155 !important;
+}
+html.dark .border-slate-100 {
+  border-color: #1e293b !important;
+}
+html.dark .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+html.dark .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+html.dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+html.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+html.dark input, html.dark select, html.dark textarea {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+html.dark input::placeholder, html.dark textarea::placeholder {
+  color: #64748b !important;
+}
+html.dark .bg-slate-50\/50 {
+  background-color: rgba(30, 41, 59, 0.2) !important;
+}
+html.dark .bg-slate-50\/20 {
+  background-color: rgba(30, 41, 59, 0.1) !important;
+}
+html.dark tr:hover {
+  background-color: #1e293b !important;
+}
+html.dark .bg-slate-50 {
+  background-color: #1e293b !important;
 }

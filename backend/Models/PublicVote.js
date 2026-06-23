@@ -37,5 +37,6 @@ const publicVoteSchema = new mongoose.Schema(
 );
 
 publicVoteSchema.index({ voteType: 1, voteCount: -1 });
+publicVoteSchema.index({ voteType: 1, location: 1 });
 
 module.exports = mongoose.model("PublicVote", publicVoteSchema);

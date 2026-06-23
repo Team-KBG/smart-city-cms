@@ -20,6 +20,36 @@ export default function RegisterComplaint() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
+  // Phase 2 - 5. Auto Save complaint draft to localStorage
+  useEffect(() => {
+    const savedForm = localStorage.getItem("complaint_draft");
+    const savedLocation = localStorage.getItem("complaint_draft_location");
+    if (savedForm) {
+      try {
+        setForm(JSON.parse(savedForm));
+      } catch (e) {
+        console.error("Error loading draft", e);
+      }
+    }
+    if (savedLocation) {
+      try {
+        setLocation(JSON.parse(savedLocation));
+      } catch (e) {
+        console.error("Error loading location draft", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("complaint_draft", JSON.stringify(form));
+  }, [form]);
+
+  useEffect(() => {
+    if (location.latitude && location.longitude) {
+      localStorage.setItem("complaint_draft_location", JSON.stringify(location));
+    }
+  }, [location]);
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -75,20 +105,31 @@ export default function RegisterComplaint() {
     if (name === "category") checkNearby(value);
   };
 
-  const submitComplaint = async (supportExistingId = null) => {
+  const submitComplaint = async (supportExistingId = null, bypassDuplicate = false) => {
     setLoading(true);
     setError("");
     try {
       const formData = new FormData();
-      Object.entries(form).forEach(([key, val]) => formData.append(key, val));
+      Object.entries(form).forEach(([key, val]) => {
+        if (key === "category" && !val && aiPreview?.category) {
+          formData.append(key, aiPreview.category);
+        } else {
+          formData.append(key, val);
+        }
+      });
       if (location.latitude) formData.append("latitude", location.latitude);
       if (location.longitude) formData.append("longitude", location.longitude);
       if (image) formData.append("image", image);
       if (supportExistingId) formData.append("supportExistingId", supportExistingId);
+      if (bypassDuplicate) formData.append("bypassDuplicateCheck", "true");
 
       const { data } = await API.post("/api/complaints", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      // Clear draft on successful submit
+      localStorage.removeItem("complaint_draft");
+      localStorage.removeItem("complaint_draft_location");
 
       setResult(data.data);
       setNearby(null);
@@ -101,11 +142,29 @@ export default function RegisterComplaint() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    const category = form.category || aiPreview?.category;
+    // Phase 1 - 4. Complaint Form Validation
+    if (!form.title || !form.title.trim()) {
+      setError("Title is required");
+      return;
+    }
+    if (!form.description || !form.description.trim()) {
+      setError("Description is required");
+      return;
+    }
+    const finalCategory = form.category || aiPreview?.category;
+    if (!finalCategory) {
+      setError("Category is required (select one or fill title/description to auto-detect)");
+      return;
+    }
+    if (!location.latitude || !location.longitude) {
+      setError("Location coordinate capture is required to submit a complaint. Please ensure GPS is enabled.");
+      return;
+    }
 
-    if (category && location.latitude) {
-      const nearbyResult = await checkNearby(category);
+    if (location.latitude) {
+      const nearbyResult = await checkNearby(finalCategory);
       if (nearbyResult?.hasSimilar) {
         return;
       }
@@ -291,7 +350,8 @@ export default function RegisterComplaint() {
               ))}
             </div>
             <button
-              type="submit"
+              type="button"
+              onClick={() => submitComplaint(null, true)}
               className="mt-3 text-sm font-medium text-amber-800 underline"
             >
               Register as new complaint anyway

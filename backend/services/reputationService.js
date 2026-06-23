@@ -2,6 +2,7 @@ const Citizen = require("../Models/Citizen");
 const { REPUTATION_LEVELS, REPUTATION_POINTS } = require("../config/constants");
 
 function getLevelFromPoints(points) {
+  if (points >= REPUTATION_LEVELS.PLATINUM.minPoints) return REPUTATION_LEVELS.PLATINUM.name;
   if (points >= REPUTATION_LEVELS.GOLD.minPoints) return REPUTATION_LEVELS.GOLD.name;
   if (points >= REPUTATION_LEVELS.SILVER.minPoints) return REPUTATION_LEVELS.SILVER.name;
   return REPUTATION_LEVELS.BRONZE.name;
@@ -12,12 +13,7 @@ async function getOrCreateCitizen(email, name = "") {
 
   let citizen = await Citizen.findOne({ email });
   if (!citizen) {
-    citizen = await Citizen.create({
-      email,
-      name,
-      points: 0,
-      level: REPUTATION_LEVELS.BRONZE.name,
-    });
+    return null;
   } else if (name && !citizen.name) {
     citizen.name = name;
     await citizen.save();

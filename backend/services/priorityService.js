@@ -1,12 +1,10 @@
 const { PRIORITY_LEVELS } = require("../config/constants");
 
-// Keyword-based priority detection rules
 const PRIORITY_RULES = [
-  { keywords: ["open manhole", "manhole open", "uncovered manhole"], priority: "Critical" },
-  { keywords: ["transformer blast", "transformer explosion", "transformer fire"], priority: "High" },
-  { keywords: ["water leakage", "water leak", "pipe burst", "water overflowing", "leakage"], priority: "Medium" },
-  { keywords: ["broken streetlight", "street light", "streetlight", "street light not working", "streetlight broken", "light not working"], priority: "Medium" },
-  { keywords: ["fire", "gas leak", "gas leakage", "accident", "emergency"], priority: "High" },
+  { keywords: ["gas leak", "gas leakage", "transformer blast", "transformer explosion", "transformer fire", "fire", "accident"], priority: "Critical" },
+  { keywords: ["open manhole", "manhole open", "uncovered manhole", "public safety threat", "safety threat", "harassment", "crime", "threat"], priority: "High" },
+  { keywords: ["water leakage", "water leak", "pipe burst", "water overflowing", "leakage", "broken streetlight", "street light", "streetlight", "street light not working", "streetlight broken", "light not working"], priority: "Medium" },
+  { keywords: ["general maintenance", "maintenance", "cleaning", "pothole", "road damage", "garbage", "trash"], priority: "Low" },
 ];
 
 /**
@@ -23,7 +21,8 @@ function detectPriority(title = "", description = "", category = "") {
 
   // Category-based defaults
   if (category === "Street Lights") return "Medium";
-  if (["Fire", "Gas Leakage", "Accident"].includes(category)) return "High";
+  if (["Fire", "Gas Leakage", "Accident"].includes(category)) return "Critical";
+  if (["Public Safety"].includes(category)) return "High";
 
   return "Low";
 }

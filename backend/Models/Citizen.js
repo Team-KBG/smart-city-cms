@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { REPUTATION_LEVELS } = require("../config/constants");
+const mongoose = require('mongoose');
+const { REPUTATION_LEVELS } = require('../config/constants');
 
 const citizenSchema = new mongoose.Schema(
   {
@@ -10,9 +10,28 @@ const citizenSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+    },
     name: {
       type: String,
-      default: "",
+      default: '',
+      trim: true,
+    },
+    phone: {
+      type: String,
+      default: '',
+    },
+    role: {
+      type: String,
+      enum: ['citizen', 'admin', 'department_staff'],
+      default: 'citizen',
+    },
+    department: {
+      type: String,
+      default: null, // Only for department_staff role
     },
     points: {
       type: Number,
@@ -34,10 +53,23 @@ const citizenSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    lastLogin: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-module.exports = mongoose.model("Citizen", citizenSchema);
+// Indexes
+citizenSchema.index({ points: -1 });
+citizenSchema.index({ role: 1 });
+citizenSchema.index({ level: 1 });
+
+module.exports = mongoose.model('Citizen', citizenSchema);

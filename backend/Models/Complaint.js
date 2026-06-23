@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { STATUS_VALUES, PRIORITY_LEVELS } = require("../config/constants");
+const mongoose = require('mongoose');
+const { STATUS_VALUES, PRIORITY_LEVELS } = require('../config/constants');
 
 const complaintSchema = new mongoose.Schema(
   {
@@ -28,13 +28,17 @@ const complaintSchema = new mongoose.Schema(
     },
     address: {
       type: String,
-      default: "",
+      default: '',
+    },
+    area: {
+      type: String,
+      default: 'Unknown',
     },
     location: {
       type: {
         type: String,
-        enum: ["Point"],
-        default: "Point",
+        enum: ['Point'],
+        default: 'Point',
       },
       coordinates: {
         type: [Number],
@@ -48,17 +52,17 @@ const complaintSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: STATUS_VALUES,
-      default: "Pending",
+      default: 'Pending',
     },
     priority: {
       type: String,
       enum: PRIORITY_LEVELS,
-      default: "Low",
+      default: 'Low',
     },
     effectivePriority: {
       type: String,
       enum: PRIORITY_LEVELS,
-      default: "Low",
+      default: 'Low',
     },
     supportCount: {
       type: Number,
@@ -73,13 +77,20 @@ const complaintSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Legacy text fields — kept for backward compatibility
     citizenEmail: {
       type: String,
-      default: "",
+      default: '',
     },
     citizenName: {
       type: String,
-      default: "",
+      default: '',
+    },
+    // Structured reference to Citizen document (preferred)
+    citizen: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Citizen',
+      default: null,
     },
     assignedAt: {
       type: Date,
@@ -89,14 +100,23 @@ const complaintSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    slaDeadline: {
+      type: Date,
+      default: null,
+    },
     statusHistory: [
       {
         status: String,
         changedAt: { type: Date, default: Date.now },
+        changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Citizen', default: null },
         note: String,
       },
     ],
     autoCategorized: {
+      type: Boolean,
+      default: false,
+    },
+    feedbackSubmitted: {
       type: Boolean,
       default: false,
     },
@@ -106,8 +126,17 @@ const complaintSchema = new mongoose.Schema(
   }
 );
 
-complaintSchema.index({ location: "2dsphere" });
+// Geospatial index
+complaintSchema.index({ location: '2dsphere' });
+// Query optimization indexes
 complaintSchema.index({ status: 1 });
+complaintSchema.index({ category: 1 });
+complaintSchema.index({ priority: 1 });
+complaintSchema.index({ createdAt: -1 });
+complaintSchema.index({ citizen: 1 });
+complaintSchema.index({ department: 1 });
+complaintSchema.index({ area: 1 });
 complaintSchema.index({ isEmergency: -1, createdAt: -1 });
+complaintSchema.index({ status: 1, isEmergency: -1 });
 
-module.exports = mongoose.model("Complaint", complaintSchema);
+module.exports = mongoose.model('Complaint', complaintSchema);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
 export default function WasteCollection() {
   const [schedules, setSchedules] = useState([]);
@@ -16,22 +17,30 @@ export default function WasteCollection() {
   });
   const [msg, setMsg] = useState("");
 
+  const { user } = useAuth();
+
   const fetchData = async () => {
     try {
-      const [schedRes, reqRes] = await Promise.all([
-        API.get("/api/waste/schedules"),
-        API.get("/api/waste/pickup-requests"),
-      ]);
+      const schedRes = await API.get("/api/waste/schedules");
       setSchedules(schedRes.data.data);
-      setRequests(reqRes.data.data);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load schedules", err);
+    }
+
+    const isAuthorized = user && (user.role === "admin" || user.role === "department_staff");
+    if (isAuthorized) {
+      try {
+        const reqRes = await API.get("/api/waste/pickup-requests");
+        setRequests(reqRes.data.data);
+      } catch (err) {
+        console.error("Failed to load pickup requests", err);
+      }
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [user]);
 
   const handleScheduleSubmit = async (e) => {
     e.preventDefault();
