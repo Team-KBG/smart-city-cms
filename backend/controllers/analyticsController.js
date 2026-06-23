@@ -6,9 +6,20 @@ exports.getAnalytics = async (req, res) => {
     const complaints = await Complaint.find();
 
     // Most complained area (by address)
+    // Most complained area (ignore empty addresses)
+    // Most complained area
     const areaCounts = {};
+
     complaints.forEach((c) => {
-      const area = c.address || "Unknown";
+      if (!c.address || c.address.trim() === "") return;
+
+      let area = c.address.trim();
+
+      // shorten long addresses
+      if (area.includes(",")) {
+        area = area.split(",")[0].trim();
+      }
+
       areaCounts[area] = (areaCounts[area] || 0) + 1;
     });
     const mostComplainedArea = Object.entries(areaCounts).sort((a, b) => b[1] - a[1])[0];
