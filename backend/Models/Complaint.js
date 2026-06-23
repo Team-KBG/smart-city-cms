@@ -38,7 +38,9 @@ const complaintSchema = new mongoose.Schema(
       type: {
         type: String,
         enum: ['Point'],
-        default: 'Point',
+        // No default — location is only set when GPS coords are available.
+        // Without this guard, Mongoose auto-inserts {type:'Point'} with no
+        // coordinates, which the 2dsphere index rejects with "type missing".
       },
       coordinates: {
         type: [Number],

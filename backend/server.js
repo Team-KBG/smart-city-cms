@@ -155,6 +155,56 @@ mongoose
     } catch (err) {
       console.error("❌ Migration error:", err.message);
     }
+
+    // ── Citizens Migration ────────────────────────────────────────────────
+    // Identify Citizens that have no password hash (legacy / seeded records).
+    // We do NOT delete them, but log them clearly so operators know which
+    // accounts need a password-reset before they can log in.
+    try {
+      const Citizen = require("./Models/Citizen");
+      const legacyCitizens = await Citizen.find({
+        $or: [
+          { password: { $exists: false } },
+          { password: null },
+          { password: "" },
+        ],
+      }).select("email role createdAt");
+
+      if (legacyCitizens.length > 0) {
+        console.warn(
+          `\u26a0\ufe0f  Found ${legacyCitizens.length} Citizen(s) with no password hash. ` +
+          `These accounts cannot log in until a password is set.`
+        );
+        legacyCitizens.forEach((c) => {
+          console.warn(
+            `   \u2022 ${c.email} (role: ${c.role}, created: ${c.createdAt ? c.createdAt.toISOString() : "unknown"})`
+          );
+        });
+        console.warn("   \u279c Use POST /api/auth/register with the same email to set a password, or contact a DB admin.");
+      } else {
+        console.log("✅ All Citizen records have a password hash — no legacy records found.");
+      }
+    } catch (err) {
+      console.error("❌ Citizens migration/audit error:", err.message);
+    }
+    // ── Malformed Location Migration ──────────────────────────────────────
+    // Complaints created before the schema fix may have location:{type:'Point'}
+    // with no coordinates. The 2dsphere index rejects these and blocks all
+    // future geospatial operations. Unset the location field to fix them.
+    try {
+      const db = mongoose.connection.db;
+      const complaintsCol = db.collection('complaints');
+      const malformedLocationResult = await complaintsCol.updateMany(
+        { 'location.type': { $exists: true }, 'location.coordinates': { $exists: false } },
+        { $unset: { location: '' } }
+      );
+      if (malformedLocationResult.modifiedCount > 0) {
+        console.log(`✅ Fixed ${malformedLocationResult.modifiedCount} complaint(s) with malformed location field.`);
+      }
+    } catch (err) {
+      console.error("❌ Malformed location migration error:", err.message);
+    }
+    // ─────────────────────────────────────────────────────────────────────
   })
   .catch((err) => {
     console.log("❌ MongoDB Error:");

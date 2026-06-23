@@ -12,8 +12,10 @@ const citizenSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
-      minlength: 6,
+      // Not required at the schema level so legacy Citizens without a hash
+      // can be loaded and saved without Mongoose validation errors.
+      // Application-level validation in authController guards bcrypt.compare.
+      default: undefined,
     },
     name: {
       type: String,

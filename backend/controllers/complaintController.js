@@ -122,13 +122,14 @@ exports.createComplaint = async (req, res, next) => {
     if (!userCategory || !userCategory.trim()) {
       return res.status(400).json({ success: false, message: 'Category is required' });
     }
-    if (longitude === undefined || latitude === undefined) {
-      return res.status(400).json({ success: false, message: 'Location is required (both latitude and longitude)' });
-    }
-
-    const coords = parseCoordinates(longitude, latitude);
-    if (!coords) {
-      return res.status(400).json({ success: false, message: 'Invalid location coordinates' });
+    // Coordinates are optional — guests on desktop may not have GPS.
+    // But if provided they must be valid.
+    let coords = null;
+    if (longitude !== undefined && latitude !== undefined) {
+      coords = parseCoordinates(longitude, latitude);
+      if (!coords) {
+        return res.status(400).json({ success: false, message: 'Invalid location coordinates provided.' });
+      }
     }
 
     // Redirect to upvote if user wants to support existing complaint
@@ -158,8 +159,8 @@ exports.createComplaint = async (req, res, next) => {
       priority = 'Critical';
     }
 
-    // Phase 2 - 7. Duplicate Complaint Detection (backend check)
-    if (!bypassDuplicateCheck) {
+    // Phase 2 - 7. Duplicate Complaint Detection (skip if no coords available)
+    if (!bypassDuplicateCheck && coords) {
       const nearby = await findNearbyComplaints(coords.lng, coords.lat, categorization.category, 100);
       if (nearby && nearby.length > 0) {
         return res.status(409).json({
@@ -204,11 +205,13 @@ exports.createComplaint = async (req, res, next) => {
       complaintData.citizenName = req.user.name;
     }
 
-    // Attach coordinates
-    complaintData.location = {
-      type: 'Point',
-      coordinates: [coords.lng, coords.lat],
-    };
+    // Attach coordinates only when present
+    if (coords) {
+      complaintData.location = {
+        type: 'Point',
+        coordinates: [coords.lng, coords.lat],
+      };
+    }
 
     if (req.file) {
       complaintData.imageUrl = `/uploads/${req.file.filename}`;
@@ -216,10 +219,14 @@ exports.createComplaint = async (req, res, next) => {
 
     const complaint = await Complaint.create(complaintData);
 
-    // Award reputation points
+    // Award reputation points — only for users with a real, non-empty email
     const emailForReputation = complaintData.citizenEmail;
-    if (emailForReputation) {
-      await onComplaintSubmitted(emailForReputation, complaintData.citizenName);
+    if (emailForReputation && typeof emailForReputation === 'string' && emailForReputation.trim().length > 0) {
+      try {
+        await onComplaintSubmitted(emailForReputation.trim(), complaintData.citizenName);
+      } catch (repErr) {
+        logger.warn('Reputation update failed (non-critical)', { error: repErr.message });
+      }
     }
 
     // Send email notification (non-blocking)
@@ -391,7 +398,9 @@ exports.updateComplaint = async (req, res, next) => {
       }
     }
 
-    await complaint.save();
+    // Use { validateBeforeSave: false } so legacy complaints with missing
+    // fields don't fail Mongoose validation when only status/department is updated.
+    await complaint.save({ validateBeforeSave: false });
     logger.info('Complaint updated', { complaintId: complaint.complaintId, status: complaint.status });
 
     res.status(200).json({ success: true, data: complaint });

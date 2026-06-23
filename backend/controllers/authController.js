@@ -85,6 +85,17 @@ exports.login = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
+    // --- Guard: legacy citizens may have no password hash stored ---
+    if (!citizen.password || typeof citizen.password !== 'string') {
+      logger.warn('Login attempted for legacy citizen without password hash', { email: citizen.email });
+      return res.status(401).json({
+        success: false,
+        message:
+          'This account was created before password authentication was enabled. ' +
+          'Please contact support or use the password-reset flow to set a password.',
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, citizen.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });

@@ -113,12 +113,15 @@ export default function RegisterComplaint() {
       Object.entries(form).forEach(([key, val]) => {
         if (key === "category" && !val && aiPreview?.category) {
           formData.append(key, aiPreview.category);
-        } else {
+        } else if (val !== null && val !== undefined) {
           formData.append(key, val);
         }
       });
-      if (location.latitude) formData.append("latitude", location.latitude);
-      if (location.longitude) formData.append("longitude", location.longitude);
+      // Only append coordinates when they are available
+      if (location.latitude && location.longitude) {
+        formData.append("latitude", location.latitude);
+        formData.append("longitude", location.longitude);
+      }
       if (image) formData.append("image", image);
       if (supportExistingId) formData.append("supportExistingId", supportExistingId);
       if (bypassDuplicate) formData.append("bypassDuplicateCheck", "true");
@@ -153,20 +156,18 @@ export default function RegisterComplaint() {
       setError("Description is required");
       return;
     }
+    // Category validation — accept AI suggestion if user left dropdown empty
     const finalCategory = form.category || aiPreview?.category;
     if (!finalCategory) {
-      setError("Category is required (select one or fill title/description to auto-detect)");
-      return;
-    }
-    if (!location.latitude || !location.longitude) {
-      setError("Location coordinate capture is required to submit a complaint. Please ensure GPS is enabled.");
+      setError("Category is required. Select one or fill in title/description to auto-detect.");
       return;
     }
 
-    if (location.latitude) {
+    // Nearby check only runs when GPS is available
+    if (location.latitude && location.longitude) {
       const nearbyResult = await checkNearby(finalCategory);
       if (nearbyResult?.hasSimilar) {
-        return;
+        return; // Let user choose to support or bypass
       }
     }
 

@@ -41,7 +41,9 @@ export function isDeptStaff() {
   return user?.role === 'department_staff';
 }
 
-export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// In dev: VITE_API_URL is '' so Vite's proxy forwards /uploads to http://localhost:5000
+// In production: set VITE_API_URL=https://your-backend.com in frontend/.env
+export const BACKEND_URL = import.meta.env.VITE_API_URL || '';
 
 export function resolveImageUrl(imageUrl) {
   if (!imageUrl) return null;
