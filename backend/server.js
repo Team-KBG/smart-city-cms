@@ -17,6 +17,7 @@ app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
+const authRoutes = require("./Routes/authRoutes");
 const complaintRoutes = require("./Routes/complaintRoutes");
 const analyticsRoutes = require("./Routes/analyticsRoutes");
 const voteRoutes = require("./Routes/voteRoutes");
@@ -24,6 +25,7 @@ const wasteRoutes = require("./Routes/wasteRoutes");
 const citizenRoutes = require("./Routes/citizenRoutes");
 const { ALL_CATEGORIES, DEPARTMENTS, STATUS_VALUES } = require("./config/constants");
 
+app.use("/api/auth", authRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/votes", voteRoutes);

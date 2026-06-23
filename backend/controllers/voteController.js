@@ -1,4 +1,5 @@
 const PublicVote = require("../Models/PublicVote");
+const User = require("../Models/User");
 const { PUBLIC_VOTE_TYPES } = require("../config/constants");
 
 exports.getVoteTypes = (req, res) => {
@@ -10,12 +11,12 @@ exports.getVoteTypes = (req, res) => {
 
 exports.createOrVote = async (req, res) => {
   try {
-    const { voteType, location, description, citizenEmail } = req.body;
+    const { voteType, location, description } = req.body;
 
-    if (!voteType || !location || !citizenEmail) {
+    if (!voteType || !location) {
       return res.status(400).json({
         success: false,
-        message: "Email, voteType and location are required",
+        message: "voteType and location are required",
       });
     }
 
@@ -26,7 +27,14 @@ exports.createOrVote = async (req, res) => {
       });
     }
 
-    const email = citizenEmail.trim().toLowerCase();
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     let vote = await PublicVote.findOne({
       voteType,
@@ -34,7 +42,11 @@ exports.createOrVote = async (req, res) => {
     });
 
     if (vote) {
-      if (vote.voters.includes(email)) {
+      const alreadyVoted = vote.voters.some(
+        (voterId) => voterId.toString() === user._id.toString()
+      );
+
+      if (alreadyVoted) {
         return res.status(400).json({
           success: false,
           message: "You have already voted for this proposal",
@@ -42,7 +54,7 @@ exports.createOrVote = async (req, res) => {
       }
 
       vote.voteCount += 1;
-      vote.voters.push(email);
+      vote.voters.push(user._id);
 
       await vote.save();
     } else {
@@ -50,9 +62,8 @@ exports.createOrVote = async (req, res) => {
         voteType,
         location,
         description: description || "",
-        citizenEmail: email,
         voteCount: 1,
-        voters: [email],
+        voters: [user._id],
       });
     }
 

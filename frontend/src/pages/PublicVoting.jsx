@@ -8,7 +8,6 @@ export default function PublicVoting() {
     voteType: PUBLIC_VOTE_TYPES[0],
     location: "",
     description: "",
-    citizenEmail: "",
   });
 
   const [msg, setMsg] = useState("");
@@ -34,15 +33,12 @@ export default function PublicVoting() {
     setMsg("");
 
     try {
-      await API.post("/api/votes", {
-        ...form,
-        citizenEmail: form.citizenEmail.trim().toLowerCase(),
-      });
+      await API.post("/api/votes", form);
 
       setMsg("Vote submitted successfully!");
 
       setForm({
-        ...form,
+        voteType: PUBLIC_VOTE_TYPES[0],
         location: "",
         description: "",
       });
@@ -51,7 +47,7 @@ export default function PublicVoting() {
     } catch (err) {
       setMsg(
         err.response?.data?.message ||
-          "Failed to submit vote"
+        "Failed to submit vote"
       );
     } finally {
       setLoading(false);
@@ -59,18 +55,10 @@ export default function PublicVoting() {
   };
 
   const handleQuickVote = async (vote) => {
-    const email = prompt("Enter your email to vote");
-
-    if (!email || !email.trim()) {
-      setMsg("Email is required to vote");
-      return;
-    }
-
     try {
       await API.post("/api/votes", {
         voteType: vote.voteType,
         location: vote.location,
-        citizenEmail: email.trim().toLowerCase(),
       });
 
       setMsg("Vote added successfully!");
@@ -78,7 +66,7 @@ export default function PublicVoting() {
     } catch (err) {
       setMsg(
         err.response?.data?.message ||
-          "You have already voted for this proposal"
+        "You have already voted for this proposal"
       );
     }
   };
@@ -120,26 +108,6 @@ export default function PublicVoting() {
                 </option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Your Email *
-            </label>
-
-            <input
-              type="email"
-              required
-              value={form.citizenEmail}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  citizenEmail: e.target.value,
-                })
-              }
-              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
-              placeholder="you@email.com"
-            />
           </div>
         </div>
 

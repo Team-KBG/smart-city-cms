@@ -8,34 +8,41 @@ const publicVoteSchema = new mongoose.Schema(
       enum: PUBLIC_VOTE_TYPES,
       required: true,
     },
+
     location: {
       type: String,
       required: true,
       trim: true,
     },
+
     description: {
       type: String,
       default: "",
     },
+
     voteCount: {
       type: Number,
       default: 1,
     },
+
     voters: [
       {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
       },
     ],
-    citizenEmail: {
-      type: String,
-      default: "",
-    },
   },
   {
     timestamps: true,
   }
 );
 
-publicVoteSchema.index({ voteType: 1, voteCount: -1 });
+publicVoteSchema.index({
+  voteType: 1,
+  voteCount: -1,
+});
 
-module.exports = mongoose.model("PublicVote", publicVoteSchema);
+module.exports = mongoose.model(
+  "PublicVote",
+  publicVoteSchema
+);
