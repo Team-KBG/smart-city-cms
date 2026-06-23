@@ -7,7 +7,7 @@ exports.protect = async (req, res, next) => {
 
     if (
       req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
+      req.headers.authorization.startsWith("Bearer ")
     ) {
       token = req.headers.authorization.split(" ")[1];
     }
@@ -15,19 +15,41 @@ exports.protect = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Not authorized",
+        message: "Authentication required. Please log in.",
       });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = await User.findById(decoded.id).select("-password");
+    const user = await User.findById(decoded.id).select("-password");
 
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User no longer exists.",
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Account is deactivated. Please contact support.",
+      });
+    }
+
+    req.user = user;
     next();
   } catch (error) {
-    res.status(401).json({
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Session expired. Please log in again.",
+      });
+    }
+
+    return res.status(401).json({
       success: false,
-      message: "Invalid token",
+      message: "Invalid authentication token.",
     });
   }
 };
@@ -39,6 +61,6 @@ exports.adminOnly = (req, res, next) => {
 
   return res.status(403).json({
     success: false,
-    message: "Admin access required",
+    message: "Admin access required. You do not have permission to perform this action.",
   });
 };

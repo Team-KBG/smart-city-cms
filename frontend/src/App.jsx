@@ -20,11 +20,12 @@ export default function App() {
     <BrowserRouter>
       <Layout>
         <Routes>
+          {/* Public routes */}
           <Route path="/" element={<Home />} />
-
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
+          {/* Citizen routes (login required) */}
           <Route
             path="/register"
             element={
@@ -70,6 +71,7 @@ export default function App() {
             }
           />
 
+          {/* Admin-only routes */}
           <Route
             path="/analytics"
             element={
@@ -87,8 +89,24 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* 404 fallback */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
     </BrowserRouter>
+  );
+}
+
+function NotFound() {
+  return (
+    <div className="empty-state" style={{ marginTop: "80px" }}>
+      <div className="empty-icon">🔍</div>
+      <h3>Page Not Found</h3>
+      <p>The page you're looking for doesn't exist.</p>
+      <a href="/" className="btn btn-primary" style={{ marginTop: "16px", textDecoration: "none" }}>
+        Go Home
+      </a>
+    </div>
   );
 }
