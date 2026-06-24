@@ -4,85 +4,72 @@ const {
   CATEGORY_DEPARTMENT_MAP,
 } = require("../config/constants");
 
-// AI-style keyword matching for automatic categorization
+// Keyword matching for automatic categorization - covers all categories
 const CATEGORY_KEYWORDS = {
+  // Emergency categories first (highest priority)
   "Gas Leakage": [
-    "gas leak",
-    "gas leakage",
-    "gas",
-    "lpg",
-    "cylinder leak",
-    "pipeline gas",
-    "gas smell",
-    "smell of gas",
+    "gas leak", "gas leakage", "gas smell", "smell of gas",
+    "lpg", "lpg leak", "cylinder leak", "pipeline gas",
   ],
-
   Fire: [
-    "fire",
-    "smoke",
-    "burning",
-    "flame",
+    "fire", "smoke", "burning", "flame", "blaze", "inferno",
   ],
-
   Accident: [
-    "accident",
-    "collision",
-    "crash",
-    "hit and run",
+    "accident", "collision", "crash", "hit and run", "road accident",
   ],
 
+  // Standard categories
   "Road Damage": [
-    "road",
-    "pothole",
-    "crack",
-    "pavement",
-    "asphalt",
-    "broken road",
+    "road", "pothole", "crack", "pavement", "asphalt",
+    "broken road", "divider", "speed breaker", "road repair",
+    "road damage", "paved", "unpaved", "road condition",
   ],
-
   "Water Supply": [
-    "water",
-    "water leak",
-    "water leakage",
-    "pipe burst",
-    "water pipe",
-    "supply",
-    "drainage",
-    "sewage",
+    "water", "water supply", "water shortage", "no water",
+    "water cut", "water pipe", "pipe burst",
   ],
-
+  Sewage: [
+    "sewage", "drain", "drainage", "sewer", "manhole",
+    "open manhole", "blocked drain", "overflow", "gutter",
+  ],
   Electricity: [
-    "electricity",
-    "power",
-    "transformer",
-    "wire",
-    "cable",
-    "outage",
+    "electricity", "power", "power cut", "power outage",
+    "transformer", "wire", "cable", "electric", "voltage",
+    "short circuit", "tripping",
   ],
-
   "Garbage Collection": [
-    "garbage",
-    "waste",
-    "trash",
-    "dump",
-    "sanitation",
-    "litter",
+    "garbage", "waste", "trash", "dump", "dumping",
+    "sanitation", "litter", "rubbish", "refuse",
   ],
-
   "Street Lights": [
-    "street light",
-    "streetlight",
-    "lamp",
-    "light pole",
-    "lighting",
+    "street light", "streetlight", "lamp", "light pole",
+    "lighting", "dark road", "light not working", "street lamp",
   ],
-
+  "Noise Pollution": [
+    "noise", "loud", "sound pollution", "loudspeaker",
+    "noise complaint", "disturbance", "construction noise",
+    "horn honking", "party noise",
+  ],
+  "Air Pollution": [
+    "pollution", "air quality", "smog", "smoke pollution",
+    "dust", "fumes", "emissions", "industrial smoke",
+  ],
+  "Illegal Construction": [
+    "illegal construction", "unauthorized construction",
+    "encroachment", "illegal building", "boundary wall",
+    "construction violation", "noc violation",
+  ],
+  "Animal Menace": [
+    "stray dog", "stray animal", "dog bite", "animal menace",
+    "monkey", "cattle", "cow", "buffalo on road",
+  ],
+  Encroachment: [
+    "encroachment", "footpath blocked", "pavement occupied",
+    "hawker", "squatter", "illegal shop",
+  ],
   "Public Safety": [
-    "safety",
-    "crime",
-    "theft",
-    "harassment",
-    "security",
+    "safety", "crime", "theft", "harassment",
+    "security", "danger", "unsafe",
   ],
 };
 
@@ -92,7 +79,7 @@ const CATEGORY_KEYWORDS = {
 function categorizeComplaint(title = "", description = "") {
   const text = `${title} ${description}`.toLowerCase();
 
-  // Emergency shortcut rules
+  // Emergency shortcut rules (highest priority)
   if (
     text.includes("gas leak") ||
     text.includes("gas leakage") ||
@@ -136,11 +123,9 @@ function categorizeComplaint(title = "", description = "") {
   }
 
   const department =
-    CATEGORY_DEPARTMENT_MAP[bestCategory] ||
-    "Public Safety Department";
+    CATEGORY_DEPARTMENT_MAP[bestCategory] || "Public Safety Department";
 
-  const isEmergency =
-    EMERGENCY_CATEGORIES.includes(bestCategory);
+  const isEmergency = EMERGENCY_CATEGORIES.includes(bestCategory);
 
   return {
     category: bestCategory,
@@ -156,13 +141,11 @@ function categorizeComplaint(title = "", description = "") {
 function suggestCategory(title, description, userCategory) {
   if (
     userCategory &&
-    [...COMPLAINT_CATEGORIES, ...EMERGENCY_CATEGORIES].includes(
-      userCategory
-    )
+    [...COMPLAINT_CATEGORIES, ...EMERGENCY_CATEGORIES].includes(userCategory)
   ) {
     return {
       category: userCategory,
-      department: CATEGORY_DEPARTMENT_MAP[userCategory],
+      department: CATEGORY_DEPARTMENT_MAP[userCategory] || "Public Safety Department",
       isEmergency: EMERGENCY_CATEGORIES.includes(userCategory),
     };
   }

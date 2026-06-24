@@ -57,10 +57,18 @@ const CATEGORY_DEPARTMENT_MAP = {
   Accident: "Public Safety Department",
 };
 
+// Extended vote types to allow more community proposals
 const PUBLIC_VOTE_TYPES = [
   "New Park",
   "More Street Lights",
   "Speed Breakers",
+  "Road Repair",
+  "Public Toilet",
+  "Garbage Bin Installation",
+  "Tree Plantation",
+  "CCTV Camera",
+  "Bus Shelter",
+  "Other",
 ];
 
 const REPUTATION_LEVELS = {

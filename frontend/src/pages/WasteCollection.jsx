@@ -6,43 +6,68 @@ import { useToast } from "../context/ToastContext";
 const WASTE_TYPES = ["General", "Recyclable", "Organic", "Bulk", "Hazardous"];
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
+const STATUS_COLORS = {
+  Pending:   { bg: "#fef3c7", color: "#92400e", border: "#fcd34d" },
+  Scheduled: { bg: "#dbeafe", color: "#1e40af", border: "#93c5fd" },
+  Completed: { bg: "#dcfce7", color: "#14532d", border: "#86efac" },
+};
+
 export default function WasteCollection() {
   const { user, isAdmin } = useAuth();
   const toast = useToast();
 
-  const [schedules, setSchedules] = useState([]);
-  const [requests, setRequests] = useState([]);
-  const [activeTab, setActiveTab] = useState("schedule");
+  const [schedules, setSchedules]     = useState([]);
+  const [requests, setRequests]       = useState([]);
   const [loadingData, setLoadingData] = useState(true);
 
-  // Admin: Add Schedule form
+  // Admin: Add Schedule form state
   const [scheduleForm, setScheduleForm] = useState({ area: "", day: "Monday", time: "", notes: "" });
   const [scheduleLoading, setScheduleLoading] = useState(false);
 
-  // Citizen: Pickup Request form
-  const [pickupForm, setPickupForm] = useState({
-    address: "",
-    area: "",
-    wasteType: "General",
-    preferredDate: "",
-  });
+  // Citizen: Pickup Request form state
+  const [pickupForm, setPickupForm] = useState({ address: "", area: "", wasteType: "General", preferredDate: "" });
   const [pickupLoading, setPickupLoading] = useState(false);
+
+  // Tab logic:
+  // Citizens: "schedule", "request"
+  // Admins: "schedule", "manage", "requests"
+  // Admin CANNOT access "request" tab — they are not citizens
+  const buildTabs = () => {
+    const base = [{ key: "schedule", label: "📅 View Schedules" }];
+    if (isAdmin) {
+      return [
+        ...base,
+        { key: "manage",   label: "⚙️ Manage Schedules" },
+        { key: "requests", label: "📋 Pickup Requests" },
+      ];
+    }
+    return [
+      ...base,
+      { key: "request", label: "📦 Request Pickup" },
+    ];
+  };
+
+  const tabs = buildTabs();
+  const [activeTab, setActiveTab] = useState("schedule");
+
+  // Ensure active tab is valid after role change
+  useEffect(() => {
+    const validKeys = tabs.map((t) => t.key);
+    if (!validKeys.includes(activeTab)) setActiveTab("schedule");
+  }, [isAdmin]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchData = async () => {
     setLoadingData(true);
     try {
-      const [schedRes] = await Promise.all([
-        API.get("/api/waste/schedules"),
-      ]);
-      setSchedules(schedRes.data.data);
+      const schedRes = await API.get("/api/waste/schedules");
+      setSchedules(schedRes.data.data || []);
 
-      // Admin also fetches pickup requests
       if (isAdmin) {
         const reqRes = await API.get("/api/waste/pickup-requests");
-        setRequests(reqRes.data.data);
+        setRequests(reqRes.data.data || []);
       }
     } catch (err) {
-      toast.error("Failed to load waste data");
+      toast.error("Failed to load waste data. Please refresh.");
     } finally {
       setLoadingData(false);
     }
@@ -50,14 +75,21 @@ export default function WasteCollection() {
 
   useEffect(() => {
     fetchData();
-  }, [isAdmin]);
+  }, [isAdmin]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Admin: Add Schedule ────────────────────────────────────────
   const handleScheduleSubmit = async (e) => {
     e.preventDefault();
+    if (!scheduleForm.area.trim()) { toast.error("Area is required"); return; }
+    if (!scheduleForm.time) { toast.error("Time is required"); return; }
+
     setScheduleLoading(true);
     try {
-      await API.post("/api/waste/schedules", scheduleForm);
-      toast.success("Collection schedule added successfully!");
+      await API.post("/api/waste/schedules", {
+        ...scheduleForm,
+        area: scheduleForm.area.trim(),
+      });
+      toast.success("Collection schedule added!");
       setScheduleForm({ area: "", day: "Monday", time: "", notes: "" });
       fetchData();
     } catch (err) {
@@ -68,25 +100,31 @@ export default function WasteCollection() {
   };
 
   const handleScheduleDelete = async (id) => {
-    if (!window.confirm("Delete this schedule?")) return;
+    if (!window.confirm("Delete this schedule? This cannot be undone.")) return;
     try {
       await API.delete(`/api/waste/schedules/${id}`);
       toast.success("Schedule deleted");
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete schedule");
     }
   };
 
+  // ── Citizen: Request Pickup ────────────────────────────────────
   const handlePickupSubmit = async (e) => {
     e.preventDefault();
+    if (!pickupForm.address.trim()) { toast.error("Address is required"); return; }
+    if (!pickupForm.area.trim()) { toast.error("Area is required"); return; }
+
     setPickupLoading(true);
     try {
-      // citizenName and citizenEmail come from req.user on backend
-      await API.post("/api/waste/pickup-requests", pickupForm);
-      toast.success("Pickup request submitted! We'll schedule it soon.");
+      await API.post("/api/waste/pickup-requests", {
+        ...pickupForm,
+        address: pickupForm.address.trim(),
+        area: pickupForm.area.trim(),
+      });
+      toast.success("Pickup request submitted! We'll schedule it soon. 🚛");
       setPickupForm({ address: "", area: "", wasteType: "General", preferredDate: "" });
-      fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to submit request");
     } finally {
@@ -94,42 +132,37 @@ export default function WasteCollection() {
     }
   };
 
+  // ── Admin: Update Request Status ───────────────────────────────
   const updateRequestStatus = async (id, status) => {
     try {
       await API.put(`/api/waste/pickup-requests/${id}`, { status });
-      toast.success(`Status updated to ${status}`);
+      toast.success(`Marked as ${status}`);
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error("Failed to update status");
     }
   };
 
-  // Build tabs based on role
-  const tabs = [
-    { key: "schedule", label: "📅 View Schedules" },
-    { key: "request", label: "📦 Request Pickup" },
-    ...(isAdmin ? [
-      { key: "manage", label: "⚙️ Manage (Admin)" },
-      { key: "requests", label: "📋 Pickup Requests (Admin)" },
-    ] : []),
-  ];
-
-  const statusColors = {
-    Pending: { bg: "#fef3c7", color: "#92400e", border: "#fcd34d" },
-    Scheduled: { bg: "#dbeafe", color: "#1e40af", border: "#93c5fd" },
-    Completed: { bg: "#dcfce7", color: "#14532d", border: "#86efac" },
-  };
-
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+    <div style={{ maxWidth: "820px", margin: "0 auto" }}>
       {/* Header */}
       <div className="page-header">
         <h1 style={{ fontSize: "26px" }}>♻️ Waste Collection Scheduler</h1>
         <p>
           {isAdmin
-            ? "Manage collection schedules and handle pickup requests from citizens."
-            : "View your area's garbage collection schedule and request special pickup."}
+            ? "Manage area collection schedules and handle citizen pickup requests."
+            : "Check your area's garbage schedule and request a special pickup."}
         </p>
+      </div>
+
+      {/* Role indicator */}
+      <div className={`alert ${isAdmin ? "alert-warning" : "alert-info"}`} style={{ marginBottom: "20px" }}>
+        <span>{isAdmin ? "⚙️" : "👤"}</span>
+        <span>
+          {isAdmin
+            ? <><strong>Admin Mode:</strong> You can manage schedules and view citizen pickup requests.</>
+            : <><strong>Logged in as:</strong> {user?.name} ({user?.email})</>}
+        </span>
       </div>
 
       {/* Tabs */}
@@ -145,55 +178,71 @@ export default function WasteCollection() {
         ))}
       </div>
 
-      {/* ---- VIEW SCHEDULES ---- */}
+      {/* ══ TAB: VIEW SCHEDULES ══════════════════════════════════════ */}
       {activeTab === "schedule" && (
         <div className="animate-fade-in">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <h2 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)" }}>
               Active Collection Schedules
+              {schedules.length > 0 && (
+                <span style={{ marginLeft: "8px", background: "var(--bg-surface-alt)", color: "var(--text-secondary)", padding: "2px 8px", borderRadius: "20px", fontSize: "12px", border: "1px solid var(--border-color)" }}>
+                  {schedules.length}
+                </span>
+              )}
             </h2>
             <button onClick={fetchData} className="btn btn-secondary btn-sm">🔄 Refresh</button>
           </div>
 
           {loadingData ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {[...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: "76px", borderRadius: "12px" }} />)}
+              {[1, 2, 3].map((i) => <div key={i} className="skeleton" style={{ height: "76px", borderRadius: "12px" }} />)}
             </div>
           ) : schedules.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">📅</div>
-              <h3>No schedules available</h3>
-              <p>Collection schedules will appear here once added by administrators.</p>
+              <h3>No schedules yet</h3>
+              <p>
+                {isAdmin
+                  ? "Add a schedule from the Manage tab."
+                  : "Collection schedules will appear here once added by the city authority."}
+              </p>
             </div>
           ) : (
-            <div style={{ display: "grid", gap: "12px" }}>
+            <div style={{ display: "grid", gap: "10px" }}>
               {schedules.map((s) => (
-                <div key={s._id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", flexWrap: "wrap", gap: "10px" }}>
+                <div key={s._id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", flexWrap: "wrap", gap: "10px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                     <div style={{
-                      width: "44px",
-                      height: "44px",
-                      borderRadius: "12px",
-                      background: "#dcfce7",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "22px",
-                      flexShrink: 0,
+                      width: "44px", height: "44px", borderRadius: "12px",
+                      background: "#dcfce7", display: "flex",
+                      alignItems: "center", justifyContent: "center",
+                      fontSize: "22px", flexShrink: 0,
                     }}>
                       ♻️
                     </div>
                     <div>
                       <p style={{ fontWeight: "700", color: "var(--text-primary)", fontSize: "14px", marginBottom: "2px" }}>{s.area}</p>
-                      <p style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-                        {s.day} at {s.time}
+                      <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
+                        📅 {s.day} &nbsp;·&nbsp; 🕐 {s.time}
                       </p>
-                      {s.notes && <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>{s.notes}</p>}
+                      {s.notes && (
+                        <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>📝 {s.notes}</p>
+                      )}
                     </div>
                   </div>
-                  <span style={{ background: "#dcfce7", color: "#15803d", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "700", border: "1px solid #86efac" }}>
-                    ✓ Active
-                  </span>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <span style={{ background: "#dcfce7", color: "#15803d", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "700", border: "1px solid #86efac" }}>
+                      ✓ Active
+                    </span>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleScheduleDelete(s._id)}
+                        className="btn btn-danger btn-sm"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -201,73 +250,79 @@ export default function WasteCollection() {
         </div>
       )}
 
-      {/* ---- REQUEST PICKUP ---- */}
-      {activeTab === "request" && (
+      {/* ══ TAB: CITIZEN — REQUEST PICKUP ════════════════════════════ */}
+      {activeTab === "request" && !isAdmin && (
         <div className="animate-fade-in">
-          <div className="alert alert-info" style={{ marginBottom: "20px" }}>
-            <span>👤</span>
-            <span>Submitting as: <strong>{user?.name}</strong> ({user?.email})</span>
-          </div>
-
           <form onSubmit={handlePickupSubmit} className="form-section" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)" }}>Request Special Pickup</h3>
+            <div>
+              <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "4px" }}>
+                📦 Request Special Pickup
+              </h3>
+              <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
+                Need an extra pickup outside the regular schedule? Submit a request and we'll send a truck.
+              </p>
+            </div>
 
             <div className="form-group">
-              <label>Full Address *</label>
+              <label htmlFor="pickup-address">Full Address *</label>
               <input
-                placeholder="House No, Street, Colony"
+                id="pickup-address"
+                placeholder="House No., Street, Colony"
                 value={pickupForm.address}
                 onChange={(e) => setPickupForm({ ...pickupForm, address: e.target.value })}
                 required
+                maxLength={200}
               />
             </div>
 
-            <div className="form-row form-row-3">
+            <div className="form-row form-row-2">
               <div className="form-group">
-                <label>Area *</label>
+                <label htmlFor="pickup-area">Area / Sector *</label>
                 <input
-                  placeholder="Sector 62"
+                  id="pickup-area"
+                  placeholder="e.g. Sector 62, Noida"
                   value={pickupForm.area}
                   onChange={(e) => setPickupForm({ ...pickupForm, area: e.target.value })}
                   required
+                  maxLength={100}
                 />
               </div>
               <div className="form-group">
-                <label>Waste Type</label>
+                <label htmlFor="pickup-type">Waste Type</label>
                 <select
+                  id="pickup-type"
                   value={pickupForm.wasteType}
                   onChange={(e) => setPickupForm({ ...pickupForm, wasteType: e.target.value })}
                 >
                   {WASTE_TYPES.map((t) => <option key={t}>{t}</option>)}
                 </select>
               </div>
-              <div className="form-group">
-                <label>Preferred Date</label>
-                <input
-                  type="date"
-                  value={pickupForm.preferredDate}
-                  onChange={(e) => setPickupForm({ ...pickupForm, preferredDate: e.target.value })}
-                  min={new Date().toISOString().split("T")[0]}
-                />
-              </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={pickupLoading}
-              className="btn btn-primary btn-full"
-            >
-              {pickupLoading ? (
-                <><span className="spinner" style={{ width: "16px", height: "16px", borderWidth: "2px" }} /> Submitting...</>
-              ) : "📦 Submit Pickup Request"}
+            <div className="form-group">
+              <label htmlFor="pickup-date">Preferred Date (optional)</label>
+              <input
+                id="pickup-date"
+                type="date"
+                value={pickupForm.preferredDate}
+                onChange={(e) => setPickupForm({ ...pickupForm, preferredDate: e.target.value })}
+                min={new Date().toISOString().split("T")[0]}
+              />
+            </div>
+
+            <button type="submit" disabled={pickupLoading} className="btn btn-primary btn-full btn-lg">
+              {pickupLoading
+                ? <><span className="spinner" style={{ width: "16px", height: "16px", borderWidth: "2px" }} /> Submitting...</>
+                : "🚛 Submit Pickup Request"}
             </button>
           </form>
         </div>
       )}
 
-      {/* ---- ADMIN: MANAGE SCHEDULES ---- */}
+      {/* ══ TAB: ADMIN — MANAGE SCHEDULES ════════════════════════════ */}
       {activeTab === "manage" && isAdmin && (
         <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          {/* Add form */}
           <form onSubmit={handleScheduleSubmit} className="form-section" style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
             <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)" }}>
               ➕ Add Collection Schedule
@@ -275,16 +330,16 @@ export default function WasteCollection() {
 
             <div className="form-row form-row-2">
               <div className="form-group">
-                <label>Area *</label>
+                <label>Area / Sector *</label>
                 <input
-                  placeholder="e.g. Sector 62"
+                  placeholder="e.g. Sector 62, Noida"
                   value={scheduleForm.area}
                   onChange={(e) => setScheduleForm({ ...scheduleForm, area: e.target.value })}
                   required
                 />
               </div>
               <div className="form-group">
-                <label>Day *</label>
+                <label>Day of Week *</label>
                 <select
                   value={scheduleForm.day}
                   onChange={(e) => setScheduleForm({ ...scheduleForm, day: e.target.value })}
@@ -296,7 +351,7 @@ export default function WasteCollection() {
 
             <div className="form-row form-row-2">
               <div className="form-group">
-                <label>Time *</label>
+                <label>Pickup Time *</label>
                 <input
                   type="time"
                   value={scheduleForm.time}
@@ -305,9 +360,9 @@ export default function WasteCollection() {
                 />
               </div>
               <div className="form-group">
-                <label>Notes</label>
+                <label>Notes (optional)</label>
                 <input
-                  placeholder="Optional notes"
+                  placeholder="e.g. Morning pickup only"
                   value={scheduleForm.notes}
                   onChange={(e) => setScheduleForm({ ...scheduleForm, notes: e.target.value })}
                 />
@@ -320,17 +375,19 @@ export default function WasteCollection() {
               className="btn btn-primary"
               style={{ alignSelf: "flex-start" }}
             >
-              {scheduleLoading ? "Adding..." : "Add Schedule"}
+              {scheduleLoading ? "Adding..." : "➕ Add Schedule"}
             </button>
           </form>
 
-          {/* Existing Schedules with Delete */}
+          {/* Existing schedules list with delete */}
           <div>
-            <h3 style={{ fontSize: "15px", fontWeight: "700", marginBottom: "12px", color: "var(--text-primary)" }}>
-              Existing Schedules
+            <h3 style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "12px" }}>
+              Existing Schedules ({schedules.length})
             </h3>
             {schedules.length === 0 ? (
-              <div className="empty-state" style={{ padding: "30px" }}><p>No schedules yet</p></div>
+              <div className="empty-state" style={{ padding: "30px" }}>
+                <p>No schedules added yet.</p>
+              </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {schedules.map((s) => (
@@ -338,12 +395,13 @@ export default function WasteCollection() {
                     <div>
                       <p style={{ fontWeight: "600", fontSize: "13px", color: "var(--text-primary)" }}>{s.area}</p>
                       <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>{s.day} at {s.time}</p>
+                      {s.notes && <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>{s.notes}</p>}
                     </div>
                     <button
                       onClick={() => handleScheduleDelete(s._id)}
                       className="btn btn-danger btn-sm"
                     >
-                      Delete
+                      🗑️ Delete
                     </button>
                   </div>
                 ))}
@@ -353,26 +411,28 @@ export default function WasteCollection() {
         </div>
       )}
 
-      {/* ---- ADMIN: PICKUP REQUESTS ---- */}
+      {/* ══ TAB: ADMIN — PICKUP REQUESTS ═════════════════════════════ */}
       {activeTab === "requests" && isAdmin && (
         <div className="animate-fade-in">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <h3 style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>
               Citizen Pickup Requests
-              {requests.length > 0 && (
-                <span style={{ marginLeft: "8px", background: "var(--bg-surface-alt)", color: "var(--text-secondary)", padding: "2px 8px", borderRadius: "20px", fontSize: "12px", border: "1px solid var(--border-color)" }}>
-                  {requests.length}
-                </span>
-              )}
+              <span style={{ marginLeft: "8px", background: "var(--bg-surface-alt)", color: "var(--text-secondary)", padding: "2px 8px", borderRadius: "20px", fontSize: "12px", border: "1px solid var(--border-color)" }}>
+                {requests.length}
+              </span>
             </h3>
             <button onClick={fetchData} className="btn btn-secondary btn-sm">🔄 Refresh</button>
           </div>
 
-          {requests.length === 0 ? (
+          {loadingData ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {[1, 2, 3].map((i) => <div key={i} className="skeleton" style={{ height: "60px", borderRadius: "10px" }} />)}
+            </div>
+          ) : requests.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">📭</div>
               <h3>No pickup requests</h3>
-              <p>Citizens' pickup requests will appear here.</p>
+              <p>Citizen pickup requests will appear here.</p>
             </div>
           ) : (
             <div className="table-container">
@@ -380,34 +440,36 @@ export default function WasteCollection() {
                 <thead>
                   <tr>
                     <th>Citizen</th>
+                    <th>Address</th>
                     <th>Area</th>
-                    <th>Waste Type</th>
+                    <th>Type</th>
                     <th>Preferred Date</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {requests.map((r) => {
-                    const sc = statusColors[r.status] || {};
+                    const sc = STATUS_COLORS[r.status] || {};
                     return (
                       <tr key={r._id}>
                         <td>
                           <p style={{ fontWeight: "600", fontSize: "13px" }}>{r.citizenName}</p>
                           <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>{r.citizenEmail}</p>
-                          <p style={{ fontSize: "11px", color: "var(--text-secondary)" }}>{r.address}</p>
                         </td>
+                        <td style={{ fontSize: "12px", maxWidth: "160px" }}>{r.address}</td>
                         <td style={{ fontWeight: "500" }}>{r.area}</td>
-                        <td>{r.wasteType}</td>
+                        <td>
+                          <span style={{ padding: "2px 8px", background: "var(--bg-surface-alt)", borderRadius: "20px", fontSize: "11px", fontWeight: "600", color: "var(--text-secondary)" }}>
+                            {r.wasteType}
+                          </span>
+                        </td>
                         <td style={{ fontSize: "12px" }}>{r.preferredDate || "—"}</td>
                         <td>
                           <span style={{
-                            padding: "3px 10px",
-                            borderRadius: "20px",
-                            fontSize: "11px",
-                            fontWeight: "700",
-                            background: sc.bg,
-                            color: sc.color,
+                            padding: "3px 10px", borderRadius: "20px",
+                            fontSize: "11px", fontWeight: "700",
+                            background: sc.bg, color: sc.color,
                             border: `1px solid ${sc.border}`,
                           }}>
                             {r.status}
@@ -421,7 +483,7 @@ export default function WasteCollection() {
                                 className="btn btn-sm"
                                 style={{ background: "#dbeafe", color: "#1e40af", border: "1px solid #93c5fd" }}
                               >
-                                Schedule
+                                📅 Schedule
                               </button>
                             )}
                             {r.status === "Scheduled" && (
@@ -430,8 +492,11 @@ export default function WasteCollection() {
                                 className="btn btn-sm"
                                 style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac" }}
                               >
-                                Complete
+                                ✅ Complete
                               </button>
+                            )}
+                            {r.status === "Completed" && (
+                              <span style={{ fontSize: "12px", color: "var(--text-muted)", fontStyle: "italic" }}>Done</span>
                             )}
                           </div>
                         </td>

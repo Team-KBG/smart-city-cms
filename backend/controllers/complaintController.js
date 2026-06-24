@@ -144,10 +144,9 @@ exports.getAllComplaints = async (req, res) => {
     const complaints = await Complaint.find(filter)
       .populate("submittedBy", "name email")
       .sort({
-        isEmergency: -1,
-        effectivePriority: -1,
-        supportCount: -1,
-        createdAt: -1,
+        isEmergency: -1,   // Emergencies first
+        supportCount: -1,  // More supported = higher priority
+        createdAt: -1,     // Newest first
       });
 
     res.status(200).json({ success: true, count: complaints.length, data: complaints });

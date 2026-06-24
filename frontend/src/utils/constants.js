@@ -39,6 +39,13 @@ export const PUBLIC_VOTE_TYPES = [
   "New Park",
   "More Street Lights",
   "Speed Breakers",
+  "Road Repair",
+  "Public Toilet",
+  "Garbage Bin Installation",
+  "Tree Plantation",
+  "CCTV Camera",
+  "Bus Shelter",
+  "Other",
 ];
 
 // Status color values for inline CSS usage

@@ -7,7 +7,7 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAdmin, isLoggedIn, logout } = useAuth();
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { toggleTheme, isDark } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
@@ -18,6 +18,7 @@ export default function Navbar() {
 
   const guestLinks = [
     { to: "/", label: "Home", icon: "🏠" },
+    { to: "/leaderboard", label: "Leaderboard", icon: "🏆" },
     { to: "/login", label: "Login", icon: "🔑" },
     { to: "/signup", label: "Sign Up", icon: "✨" },
   ];
@@ -29,6 +30,7 @@ export default function Navbar() {
     { to: "/heatmap", label: "Heat Map", icon: "🗺️" },
     { to: "/vote", label: "Vote", icon: "🗳️" },
     { to: "/waste", label: "Waste", icon: "♻️" },
+    { to: "/leaderboard", label: "Leaderboard", icon: "🏆" },
   ];
 
   const adminLinks = [
@@ -38,6 +40,7 @@ export default function Navbar() {
     { to: "/heatmap", label: "Heat Map", icon: "🗺️" },
     { to: "/waste", label: "Waste Mgmt", icon: "♻️" },
     { to: "/vote", label: "Votes", icon: "🗳️" },
+    { to: "/leaderboard", label: "Leaderboard", icon: "🏆" },
   ];
 
   const links = !isLoggedIn ? guestLinks : isAdmin ? adminLinks : citizenLinks;
@@ -46,10 +49,6 @@ export default function Navbar() {
     if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
   };
-
-  const roleBadge = isAdmin
-    ? { label: "Admin", color: "background: #7c3aed; color: white;" }
-    : { label: "Citizen", color: "background: #0284c7; color: white;" };
 
   return (
     <nav style={{
@@ -100,38 +99,39 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <div style={{ display: "flex", alignItems: "center", gap: "4px", flex: 1, justifyContent: "center" }} className="desktop-nav">
+        <div style={{ display: "flex", alignItems: "center", gap: "2px", flex: 1, justifyContent: "center" }} className="desktop-nav">
           {links.map((link) => (
             <Link
-              key={link.to}
+              key={link.to + link.label}
               to={link.to}
               style={{
-                padding: "6px 12px",
+                padding: "6px 10px",
                 borderRadius: "8px",
-                fontSize: "13px",
+                fontSize: "12px",
                 fontWeight: "600",
                 textDecoration: "none",
                 transition: "all 0.18s ease",
                 display: "flex",
                 alignItems: "center",
-                gap: "5px",
+                gap: "4px",
                 color: isActive(link.to) ? "white" : "var(--text-secondary)",
                 background: isActive(link.to) ? "var(--primary-600)" : "transparent",
+                whiteSpace: "nowrap",
               }}
               onMouseEnter={(e) => {
                 if (!isActive(link.to)) {
-                  e.target.style.background = "var(--bg-surface-alt)";
-                  e.target.style.color = "var(--text-primary)";
+                  e.currentTarget.style.background = "var(--bg-surface-alt)";
+                  e.currentTarget.style.color = "var(--text-primary)";
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive(link.to)) {
-                  e.target.style.background = "transparent";
-                  e.target.style.color = "var(--text-secondary)";
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "var(--text-secondary)";
                 }
               }}
             >
-              <span style={{ fontSize: "12px" }}>{link.icon}</span>
+              <span style={{ fontSize: "11px" }}>{link.icon}</span>
               {link.label}
             </Link>
           ))}
@@ -195,10 +195,7 @@ export default function Navbar() {
                 </span>
               </div>
 
-              <button
-                onClick={handleLogout}
-                className="btn btn-sm btn-danger"
-              >
+              <button onClick={handleLogout} className="btn btn-sm btn-danger">
                 Logout
               </button>
             </>
@@ -207,6 +204,7 @@ export default function Navbar() {
           {/* Mobile menu toggle */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
             style={{
               display: "none",
               width: "36px",
@@ -238,7 +236,7 @@ export default function Navbar() {
         }}>
           {links.map((link) => (
             <Link
-              key={link.to}
+              key={link.to + link.label}
               to={link.to}
               onClick={() => setMobileOpen(false)}
               style={{
@@ -271,7 +269,7 @@ export default function Navbar() {
       )}
 
       <style>{`
-        @media (max-width: 900px) {
+        @media (max-width: 1050px) {
           .desktop-nav { display: none !important; }
           .mobile-menu-btn { display: flex !important; }
         }

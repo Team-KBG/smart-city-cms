@@ -11,7 +11,7 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
+// ── Middleware ───────────────────────────────────────────────
 app.use(cors({
   origin: process.env.CLIENT_URL || "http://localhost:5173",
   credentials: true,
@@ -28,7 +28,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+// ── Routes ───────────────────────────────────────────────────
 const authRoutes = require("./Routes/authRoutes");
 const complaintRoutes = require("./Routes/complaintRoutes");
 const analyticsRoutes = require("./Routes/analyticsRoutes");
@@ -44,11 +44,12 @@ app.use("/api/votes", voteRoutes);
 app.use("/api/waste", wasteRoutes);
 app.use("/api/citizens", citizenRoutes);
 
-// Home Route
+// ── Public Endpoints ─────────────────────────────────────────
 app.get("/", (req, res) => {
   res.json({
     message: "Smart City Complaint Management System API",
     version: "1.0.0",
+    status: "running",
     endpoints: {
       auth: "/api/auth",
       complaints: "/api/complaints",
@@ -60,7 +61,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// Metadata endpoints (public)
+// Expose constants to frontend
 app.get("/api/meta", (req, res) => {
   res.json({
     categories: ALL_CATEGORIES,
@@ -69,6 +70,7 @@ app.get("/api/meta", (req, res) => {
   });
 });
 
+// ── Error Handlers ───────────────────────────────────────────
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
@@ -76,20 +78,33 @@ app.use((req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({
+  console.error("Unhandled error:", err.message || err);
+  res.status(err.status || 500).json({
     success: false,
-    message: process.env.NODE_ENV === "production" ? "Internal server error" : err.message,
+    message: process.env.NODE_ENV === "production" ? "Internal server error" : (err.message || "Unknown error"),
   });
 });
 
-// MongoDB Connection
+// ── Database Connection & Server Start ────────────────────────
 mongoose
   .connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 10000 })
-  .then(() => console.log("✅ MongoDB Connected"))
+  .then(async () => {
+    console.log("✅ MongoDB Connected");
+
+    // Ensure geospatial index exists for nearby complaint detection
+    try {
+      const Complaint = require("./Models/Complaint");
+      await Complaint.collection.createIndex({ location: "2dsphere" }, { background: true });
+      console.log("✅ Geospatial index ensured");
+    } catch (err) {
+      // Index might already exist — safe to ignore
+      if (err.code !== 85 && err.code !== 86) {
+        console.warn("⚠️  Index creation warning:", err.message);
+      }
+    }
+  })
   .catch((err) => {
-    console.log("❌ MongoDB Error:");
-    console.log(err);
+    console.error("❌ MongoDB connection error:", err.message);
   });
 
 const PORT = process.env.PORT || 5000;

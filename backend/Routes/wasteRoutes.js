@@ -3,8 +3,8 @@ const router = express.Router();
 const wasteController = require("../controllers/wasteController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
-// Public schedule viewing (authenticated citizens can view)
-router.get("/schedules", protect, wasteController.getSchedules);
+// Public - anyone can view collection schedules
+router.get("/schedules", wasteController.getSchedules);
 
 // Admin-only schedule management
 router.post("/schedules", protect, adminOnly, wasteController.createSchedule);

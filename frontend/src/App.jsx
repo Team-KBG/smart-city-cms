@@ -11,6 +11,7 @@ import HeatMap from "./pages/HeatMap";
 import Analytics from "./pages/Analytics";
 import PublicVoting from "./pages/PublicVoting";
 import WasteCollection from "./pages/WasteCollection";
+import Leaderboard from "./pages/Leaderboard";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -20,12 +21,13 @@ export default function App() {
     <BrowserRouter>
       <Layout>
         <Routes>
-          {/* Public routes */}
+          {/* ── Public Routes ──────────────────────── */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
 
-          {/* Citizen routes (login required) */}
+          {/* ── Citizen Routes (login required) ───── */}
           <Route
             path="/register"
             element={
@@ -34,7 +36,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/track"
             element={
@@ -43,7 +44,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/heatmap"
             element={
@@ -52,7 +52,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/vote"
             element={
@@ -61,7 +60,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/waste"
             element={
@@ -71,7 +69,7 @@ export default function App() {
             }
           />
 
-          {/* Admin-only routes */}
+          {/* ── Admin-Only Routes ──────────────────── */}
           <Route
             path="/analytics"
             element={
@@ -80,7 +78,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/admin"
             element={
@@ -90,7 +87,7 @@ export default function App() {
             }
           />
 
-          {/* 404 fallback */}
+          {/* ── 404 Fallback ───────────────────────── */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
@@ -105,7 +102,7 @@ function NotFound() {
       <h3>Page Not Found</h3>
       <p>The page you're looking for doesn't exist.</p>
       <a href="/" className="btn btn-primary" style={{ marginTop: "16px", textDecoration: "none" }}>
-        Go Home
+        ← Go Home
       </a>
     </div>
   );
