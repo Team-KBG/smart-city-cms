@@ -5,25 +5,25 @@ import { useToast } from "../context/ToastContext";
 
 // ── Proposal type metadata ────────────────────────────────────────────────────
 const VOTE_TYPE_META = {
-  "New Park":                 { icon: "🌳", color: "#16a34a", bg: "#dcfce7", border: "#86efac" },
-  "More Street Lights":       { icon: "💡", color: "#d97706", bg: "#fef3c7", border: "#fcd34d" },
-  "Speed Breakers":           { icon: "🛑", color: "#dc2626", bg: "#fee2e2", border: "#fca5a5" },
-  "Road Repair":              { icon: "🛣️", color: "#7c3aed", bg: "#ede9fe", border: "#c4b5fd" },
-  "Public Toilet":            { icon: "🚻", color: "#0891b2", bg: "#cffafe", border: "#67e8f9" },
+  "New Park": { icon: "🌳", color: "#16a34a", bg: "#dcfce7", border: "#86efac" },
+  "More Street Lights": { icon: "💡", color: "#d97706", bg: "#fef3c7", border: "#fcd34d" },
+  "Speed Breakers": { icon: "🛑", color: "#dc2626", bg: "#fee2e2", border: "#fca5a5" },
+  "Road Repair": { icon: "🛣️", color: "#7c3aed", bg: "#ede9fe", border: "#c4b5fd" },
+  "Public Toilet": { icon: "🚻", color: "#0891b2", bg: "#cffafe", border: "#67e8f9" },
   "Garbage Bin Installation": { icon: "🗑️", color: "#4d7c0f", bg: "#ecfccb", border: "#a3e635" },
-  "Tree Plantation":          { icon: "🌱", color: "#15803d", bg: "#f0fdf4", border: "#86efac" },
-  "CCTV Camera":              { icon: "📹", color: "#1d4ed8", bg: "#dbeafe", border: "#93c5fd" },
-  "Bus Shelter":              { icon: "🚌", color: "#9333ea", bg: "#f3e8ff", border: "#d8b4fe" },
-  "Other":                    { icon: "🏙️", color: "#475569", bg: "#f1f5f9", border: "#e2e8f0" },
+  "Tree Plantation": { icon: "🌱", color: "#15803d", bg: "#f0fdf4", border: "#86efac" },
+  "CCTV Camera": { icon: "📹", color: "#1d4ed8", bg: "#dbeafe", border: "#93c5fd" },
+  "Bus Shelter": { icon: "🚌", color: "#9333ea", bg: "#f3e8ff", border: "#d8b4fe" },
+  "Other": { icon: "🏙️", color: "#475569", bg: "#f1f5f9", border: "#e2e8f0" },
 };
 
 // ── Proposal status config ────────────────────────────────────────────────────
 const STATUS_META = {
-  "Active":      { bg: "#dcfce7", color: "#15803d", border: "#86efac",  icon: "🟢" },
-  "In Progress": { bg: "#dbeafe", color: "#1e40af", border: "#93c5fd",  icon: "🔵" },
-  "Approved":    { bg: "#ede9fe", color: "#6d28d9", border: "#c4b5fd",  icon: "✅" },
-  "Rejected":    { bg: "#fee2e2", color: "#dc2626", border: "#fca5a5",  icon: "❌" },
-  "Completed":   { bg: "#f0fdf4", color: "#065f46", border: "#6ee7b7",  icon: "🏁" },
+  "Active": { bg: "#dcfce7", color: "#15803d", border: "#86efac", icon: "🟢" },
+  "In Progress": { bg: "#dbeafe", color: "#1e40af", border: "#93c5fd", icon: "🔵" },
+  "Approved": { bg: "#ede9fe", color: "#6d28d9", border: "#c4b5fd", icon: "✅" },
+  "Rejected": { bg: "#fee2e2", color: "#dc2626", border: "#fca5a5", icon: "❌" },
+  "Completed": { bg: "#f0fdf4", color: "#065f46", border: "#6ee7b7", icon: "🏁" },
 };
 
 const PROPOSAL_STATUSES = ["Active", "In Progress", "Approved", "Rejected", "Completed"];
@@ -34,15 +34,15 @@ function getMeta(type) {
 
 // ── Citizen: Browse & Vote Tab ────────────────────────────────────────────────
 function BrowseTab({ votes, loading, onVote, votingId, onRefresh, isAdmin }) {
-  const [typeFilter, setTypeFilter]   = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const presentTypes = [...new Set(votes.map((v) => v.voteType))].sort();
 
   const displayed = votes
-    .filter((v) => typeFilter === "all"   || v.voteType === typeFilter)
-    .filter((v) => statusFilter === "all" || v.status   === statusFilter)
+    .filter((v) => typeFilter === "all" || v.voteType === typeFilter)
+    .filter((v) => statusFilter === "all" || v.status === statusFilter)
     .filter((v) =>
       !searchQuery ||
       v.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -119,7 +119,7 @@ function BrowseTab({ votes, loading, onVote, votingId, onRefresh, isAdmin }) {
       {/* Results */}
       {loading ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {[1,2,3,4,5].map((i) => <div key={i} className="skeleton" style={{ height: "90px", borderRadius: "12px" }} />)}
+          {[1, 2, 3, 4, 5].map((i) => <div key={i} className="skeleton" style={{ height: "90px", borderRadius: "12px" }} />)}
         </div>
       ) : displayed.length === 0 ? (
         <div className="empty-state">
@@ -140,13 +140,13 @@ function BrowseTab({ votes, loading, onVote, votingId, onRefresh, isAdmin }) {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {displayed.map((vote, i) => {
-            const meta       = getMeta(vote.voteType);
+            const meta = getMeta(vote.voteType);
             const statusMeta = STATUS_META[vote.status] || STATUS_META["Active"];
-            const barWidth   = Math.max(6, Math.round((vote.voteCount / maxVotes) * 100));
-            const isVoting   = votingId === vote._id;
-            const medals     = ["🥇", "🥈", "🥉"];
-            const canVote    = !vote.hasVoted && !isAdmin &&
-                               vote.status !== "Rejected" && vote.status !== "Completed";
+            const barWidth = Math.max(6, Math.round((vote.voteCount / maxVotes) * 100));
+            const isVoting = votingId === vote._id;
+            const medals = ["🥇", "🥈", "🥉"];
+            const canVote = !vote.hasVoted && !isAdmin &&
+              vote.status !== "Rejected" && vote.status !== "Completed";
 
             return (
               <div key={vote._id} className="card"
@@ -243,9 +243,9 @@ function BrowseTab({ votes, loading, onVote, votingId, onRefresh, isAdmin }) {
                         className="btn btn-sm"
                         title={
                           vote.hasVoted ? "Already voted" :
-                          vote.status === "Rejected" ? "Proposal rejected" :
-                          vote.status === "Completed" ? "Proposal completed" :
-                          "Cast your vote"
+                            vote.status === "Rejected" ? "Proposal rejected" :
+                              vote.status === "Completed" ? "Proposal completed" :
+                                "Cast your vote"
                         }
                         style={{
                           background: vote.hasVoted ? "var(--bg-surface-alt)" : meta.color,
@@ -261,8 +261,8 @@ function BrowseTab({ votes, loading, onVote, votingId, onRefresh, isAdmin }) {
                         {isVoting
                           ? <span className="spinner" style={{ width: "12px", height: "12px", borderWidth: "2px", borderTopColor: "white" }} />
                           : vote.hasVoted ? "✓ Voted"
-                          : (vote.status === "Rejected" || vote.status === "Completed") ? "Closed"
-                          : "👍 Vote"}
+                            : (vote.status === "Rejected" || vote.status === "Completed") ? "Closed"
+                              : "👍 Vote"}
                       </button>
                     )}
 
@@ -296,9 +296,9 @@ function ProposeTab({ user, onProposed }) {
     location: "",
     description: "",
   });
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState("");
-  const [success, setSuccess]   = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -348,7 +348,7 @@ function ProposeTab({ user, onProposed }) {
           </p>
         </div>
 
-        {error   && <div className="alert alert-error"><span>⚠️</span><span>{error}</span></div>}
+        {error && <div className="alert alert-error"><span>⚠️</span><span>{error}</span></div>}
         {success && <div className="alert alert-success"><span>✅</span><span>{success}</span></div>}
 
         {/* Type selector grid */}
@@ -453,13 +453,13 @@ function AdminManageTab({ votes, loading, onRefresh, onStatusUpdate, onDelete })
   const presentTypes = [...new Set(votes.map((v) => v.voteType))].sort();
 
   const displayed = votes
-    .filter((v) => typeFilter === "all"   || v.voteType === typeFilter)
-    .filter((v) => statusFilter === "all" || v.status   === statusFilter)
+    .filter((v) => typeFilter === "all" || v.voteType === typeFilter)
+    .filter((v) => statusFilter === "all" || v.status === statusFilter)
     .sort((a, b) => b.voteCount - a.voteCount);
 
   const handleUpdate = async (vote) => {
     const newStatus = statusInputs[vote._id] || vote.status;
-    const newNote   = noteInputs[vote._id] !== undefined ? noteInputs[vote._id] : vote.adminNote;
+    const newNote = noteInputs[vote._id] !== undefined ? noteInputs[vote._id] : vote.adminNote;
     setUpdating(vote._id);
     await onStatusUpdate(vote._id, newStatus, newNote);
     setUpdating(null);
@@ -500,7 +500,7 @@ function AdminManageTab({ votes, loading, onRefresh, onStatusUpdate, onDelete })
 
       {loading ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {[1,2,3].map((i) => <div key={i} className="skeleton" style={{ height: "120px", borderRadius: "12px" }} />)}
+          {[1, 2, 3].map((i) => <div key={i} className="skeleton" style={{ height: "120px", borderRadius: "12px" }} />)}
         </div>
       ) : displayed.length === 0 ? (
         <div className="empty-state">
@@ -511,7 +511,7 @@ function AdminManageTab({ votes, loading, onRefresh, onStatusUpdate, onDelete })
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {displayed.map((vote) => {
-            const meta       = getMeta(vote.voteType);
+            const meta = getMeta(vote.voteType);
             const statusMeta = STATUS_META[vote.status] || STATUS_META["Active"];
             const isUpdating = updating === vote._id;
 
@@ -606,17 +606,21 @@ export default function PublicVoting() {
   const { user, isAdmin } = useAuth();
   const toast = useToast();
 
-  const [votes, setVotes]           = useState([]);
-  const [loadingVotes, setLoading]  = useState(true);
-  const [votingId, setVotingId]     = useState(null);
-  const [activeTab, setActiveTab]   = useState("browse");
+  const [votes, setVotes] = useState([]);
+  const [loadingVotes, setLoading] = useState(true);
+  const [votingId, setVotingId] = useState(null);
+  const [activeTab, setActiveTab] = useState("browse");
 
   // ── Fetch all proposals ───────────────────────────────────────
   const fetchVotes = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await API.get("/api/votes");
-      setVotes(Array.isArray(data.data) ? data.data : []);
+      // Normalize status for any legacy docs that predate the status field
+      const normalized = Array.isArray(data.data)
+        ? data.data.map((v) => ({ ...v, status: v.status || "Active" }))
+        : [];
+      setVotes(normalized);
     } catch (err) {
       const msg = err.response?.status === 401
         ? "Please log in to view community proposals."
@@ -639,10 +643,13 @@ export default function PublicVoting() {
       const { data } = await API.post(`/api/votes/${vote._id}/vote`);
       toast.success(data.message || "Vote cast! 👍");
 
-      // Optimistic update
+      // Use server-authoritative voteCount from response
+      const serverVoteCount = data.data?.voteCount ?? (vote.voteCount + 1);
       setVotes((prev) =>
         prev.map((v) =>
-          v._id === vote._id ? { ...v, voteCount: v.voteCount + 1, hasVoted: true } : v
+          v._id === vote._id
+            ? { ...v, voteCount: serverVoteCount, hasVoted: true }
+            : v
         )
       );
     } catch (err) {
@@ -676,16 +683,16 @@ export default function PublicVoting() {
   };
 
   // ── Stats ─────────────────────────────────────────────────────
-  const totalVotes     = votes.reduce((s, v) => s + (v.voteCount || 0), 0);
-  const myVotesCount   = votes.filter((v) => v.hasVoted).length;
+  const totalVotes = votes.reduce((s, v) => s + (v.voteCount || 0), 0);
+  const myVotesCount = votes.filter((v) => v.hasVoted).length;
   const activeProposals = votes.filter((v) => v.status === "Active").length;
 
   // ── Tabs ──────────────────────────────────────────────────────
   const tabs = isAdmin ? [
-    { key: "browse",  label: "🗳️ Browse Proposals" },
-    { key: "manage",  label: "⚙️ Manage (Admin)" },
+    { key: "browse", label: "🗳️ Browse Proposals" },
+    { key: "manage", label: "⚙️ Manage (Admin)" },
   ] : [
-    { key: "browse",  label: "🗳️ Browse & Vote" },
+    { key: "browse", label: "🗳️ Browse & Vote" },
     { key: "propose", label: "✨ Propose Improvement" },
   ];
 
@@ -707,9 +714,9 @@ export default function PublicVoting() {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "10px", marginBottom: "24px" }}>
         {[
-          { label: "Total Proposals", value: votes.length,   color: "#2563eb", icon: "📋" },
-          { label: "Total Votes",     value: totalVotes,      color: "#7c3aed", icon: "🗳️" },
-          { label: "Active",          value: activeProposals, color: "#16a34a", icon: "🟢" },
+          { label: "Total Proposals", value: votes.length, color: "#2563eb", icon: "📋" },
+          { label: "Total Votes", value: totalVotes, color: "#7c3aed", icon: "🗳️" },
+          { label: "Active", value: activeProposals, color: "#16a34a", icon: "🟢" },
           ...(!isAdmin ? [{ label: "Your Votes", value: myVotesCount, color: "#d97706", icon: "✅" }] : []),
         ].map((s) => (
           <div key={s.label} className="card" style={{ padding: "12px 14px", textAlign: "center" }}>

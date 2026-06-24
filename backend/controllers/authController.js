@@ -66,6 +66,14 @@ exports.register = async (req, res) => {
       role: allowedRole,
     });
 
+    if (allowedRole === "citizen") {
+      const Citizen = require("../Models/Citizen");
+      await Citizen.create({
+        email: user.email,
+        name: user.name,
+      });
+    }
+
     res.status(201).json({
       success: true,
       token: generateToken(user._id),

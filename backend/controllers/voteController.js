@@ -20,12 +20,18 @@ exports.getAllVotes = async (req, res) => {
       .sort({ voteCount: -1, createdAt: -1 })
       .populate("createdBy", "name");
 
-    const data = votes.map((vote) => ({
-      ...vote.toObject(),
-      hasVoted: vote.voters.some((id) => id.toString() === userId.toString()),
-      // strip voters array from response (privacy + payload size)
-      voters: undefined,
-    }));
+    const data = votes.map((vote) => {
+      const obj = vote.toObject();
+      return {
+        ...obj,
+        // Normalize status: old documents created before status field was added
+        // will have status=undefined; default them to "Active"
+        status: obj.status || "Active",
+        hasVoted: (vote.voters || []).some((id) => id.toString() === userId.toString()),
+        // strip voters array from response (privacy + payload size)
+        voters: undefined,
+      };
+    });
 
     res.status(200).json({ success: true, count: data.length, data });
   } catch (error) {
@@ -123,7 +129,7 @@ exports.castVote = async (req, res) => {
     }
 
     // Check duplicate vote
-    const alreadyVoted = vote.voters.some((id) => id.toString() === userId.toString());
+    const alreadyVoted = (vote.voters || []).some((id) => id.toString() === userId.toString());
     if (alreadyVoted) {
       return res.status(400).json({
         success: false,
@@ -133,6 +139,9 @@ exports.castVote = async (req, res) => {
 
     // Atomically increment vote count and push voter
     vote.voteCount += 1;
+    if (!vote.voters) {
+      vote.voters = [];
+    }
     vote.voters.push(userId);
     await vote.save();
 
@@ -210,11 +219,16 @@ exports.getTopVotes = async (req, res) => {
       .limit(50)
       .populate("createdBy", "name");
 
-    const data = votes.map((vote) => ({
-      ...vote.toObject(),
-      hasVoted: vote.voters.some((id) => id.toString() === userId.toString()),
-      voters: undefined,
-    }));
+    const data = votes.map((vote) => {
+      const obj = vote.toObject();
+      return {
+        ...obj,
+        // Normalize status: old documents created before status field was added
+        status: obj.status || "Active",
+        hasVoted: (vote.voters || []).some((id) => id.toString() === userId.toString()),
+        voters: undefined,
+      };
+    });
 
     res.status(200).json({ success: true, count: data.length, data });
   } catch (error) {
