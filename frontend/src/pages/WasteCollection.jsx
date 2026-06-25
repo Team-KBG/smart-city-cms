@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import API from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+import {
+  Recycle, Settings, PackageCheck, Calendar, Clock,
+  User, Trash2, PlusCircle, RefreshCw, Truck, CheckCircle2, Inbox
+} from "lucide-react";
 
 const WASTE_TYPES = ["General", "Recyclable", "Organic", "Bulk", "Hazardous"];
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -33,17 +37,17 @@ export default function WasteCollection() {
   // Admins: "schedule", "manage", "requests"
   // Admin CANNOT access "request" tab — they are not citizens
   const buildTabs = () => {
-    const base = [{ key: "schedule", label: "📅 View Schedules" }];
+    const base = [{ key: "schedule", label: "View Schedules", Icon: Calendar }];
     if (isAdmin) {
       return [
         ...base,
-        { key: "manage",   label: "⚙️ Manage Schedules" },
-        { key: "requests", label: "📋 Pickup Requests" },
+        { key: "manage",   label: "Manage Schedules", Icon: Settings },
+        { key: "requests", label: "Pickup Requests", Icon: PackageCheck },
       ];
     }
     return [
       ...base,
-      { key: "request", label: "📦 Request Pickup" },
+      { key: "request", label: "Request Pickup", Icon: Truck },
     ];
   };
 
@@ -147,7 +151,17 @@ export default function WasteCollection() {
     <div style={{ maxWidth: "820px", margin: "0 auto" }}>
       {/* Header */}
       <div className="page-header">
-        <h1 style={{ fontSize: "26px" }}>♻️ Waste Collection Scheduler</h1>
+        <h1 style={{ fontSize: "26px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{
+            width: "38px", height: "38px", borderRadius: "10px",
+            background: "linear-gradient(135deg, #16a34a, #22c55e)",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <Recycle size={20} color="white" />
+          </span>
+          Waste Collection Scheduler
+        </h1>
         <p>
           {isAdmin
             ? "Manage area collection schedules and handle citizen pickup requests."
@@ -157,7 +171,7 @@ export default function WasteCollection() {
 
       {/* Role indicator */}
       <div className={`alert ${isAdmin ? "alert-warning" : "alert-info"}`} style={{ marginBottom: "20px" }}>
-        <span>{isAdmin ? "⚙️" : "👤"}</span>
+        {isAdmin ? <Settings size={15} style={{ flexShrink: 0 }} /> : <User size={15} style={{ flexShrink: 0 }} />}
         <span>
           {isAdmin
             ? <><strong>Admin Mode:</strong> You can manage schedules and view citizen pickup requests.</>
@@ -172,7 +186,9 @@ export default function WasteCollection() {
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`tab-btn ${activeTab === tab.key ? "active" : ""}`}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
+            <tab.Icon size={14} />
             {tab.label}
           </button>
         ))}
@@ -190,7 +206,9 @@ export default function WasteCollection() {
                 </span>
               )}
             </h2>
-            <button onClick={fetchData} className="btn btn-secondary btn-sm">🔄 Refresh</button>
+            <button onClick={fetchData} className="btn btn-secondary btn-sm" style={{ gap: "5px", display: "inline-flex", alignItems: "center" }}>
+              <RefreshCw size={12} /> Refresh
+            </button>
           </div>
 
           {loadingData ? (
@@ -199,7 +217,7 @@ export default function WasteCollection() {
             </div>
           ) : schedules.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">📅</div>
+              <div className="empty-icon"><Calendar size={28} color="var(--text-muted)" /></div>
               <h3>No schedules yet</h3>
               <p>
                 {isAdmin
@@ -214,16 +232,19 @@ export default function WasteCollection() {
                   <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                     <div style={{
                       width: "44px", height: "44px", borderRadius: "12px",
-                      background: "#dcfce7", display: "flex",
+                      background: "rgba(22,163,74,0.1)", display: "flex",
                       alignItems: "center", justifyContent: "center",
-                      fontSize: "22px", flexShrink: 0,
+                      flexShrink: 0,
                     }}>
-                      ♻️
+                      <Recycle size={22} color="#16a34a" />
                     </div>
                     <div>
                       <p style={{ fontWeight: "700", color: "var(--text-primary)", fontSize: "14px", marginBottom: "2px" }}>{s.area}</p>
                       <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
-                        📅 {s.day} &nbsp;·&nbsp; 🕐 {s.time}
+                        <Calendar size={12} style={{ display: "inline", marginRight: "4px" }} />
+                        {s.day} &nbsp;·&nbsp;
+                        <Clock size={12} style={{ display: "inline", marginRight: "4px" }} />
+                        {s.time}
                       </p>
                       {s.notes && (
                         <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>📝 {s.notes}</p>
@@ -255,8 +276,8 @@ export default function WasteCollection() {
         <div className="animate-fade-in">
           <form onSubmit={handlePickupSubmit} className="form-section" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             <div>
-              <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "4px" }}>
-                📦 Request Special Pickup
+              <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <Truck size={16} color="var(--primary-500)" /> Request Special Pickup
               </h3>
               <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
                 Need an extra pickup outside the regular schedule? Submit a request and we'll send a truck.
@@ -310,10 +331,10 @@ export default function WasteCollection() {
               />
             </div>
 
-            <button type="submit" disabled={pickupLoading} className="btn btn-primary btn-full btn-lg">
+            <button type="submit" disabled={pickupLoading} className="btn btn-primary btn-full btn-lg" style={{ gap: "8px", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
               {pickupLoading
                 ? <><span className="spinner" style={{ width: "16px", height: "16px", borderWidth: "2px" }} /> Submitting...</>
-                : "🚛 Submit Pickup Request"}
+                : <><Truck size={16} /> Submit Pickup Request</>}
             </button>
           </form>
         </div>
@@ -324,8 +345,8 @@ export default function WasteCollection() {
         <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {/* Add form */}
           <form onSubmit={handleScheduleSubmit} className="form-section" style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)" }}>
-              ➕ Add Collection Schedule
+            <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+              <PlusCircle size={16} color="var(--primary-500)" /> Add Collection Schedule
             </h3>
 
             <div className="form-row form-row-2">
@@ -373,9 +394,9 @@ export default function WasteCollection() {
               type="submit"
               disabled={scheduleLoading}
               className="btn btn-primary"
-              style={{ alignSelf: "flex-start" }}
+              style={{ alignSelf: "flex-start", gap: "6px", display: "inline-flex", alignItems: "center" }}
             >
-              {scheduleLoading ? "Adding..." : "➕ Add Schedule"}
+              {scheduleLoading ? "Adding..." : <><PlusCircle size={15} /> Add Schedule</>}
             </button>
           </form>
 
@@ -400,8 +421,9 @@ export default function WasteCollection() {
                     <button
                       onClick={() => handleScheduleDelete(s._id)}
                       className="btn btn-danger btn-sm"
+                      style={{ gap: "4px", display: "inline-flex", alignItems: "center" }}
                     >
-                      🗑️ Delete
+                      <Trash2 size={12} /> Delete
                     </button>
                   </div>
                 ))}
@@ -421,7 +443,9 @@ export default function WasteCollection() {
                 {requests.length}
               </span>
             </h3>
-            <button onClick={fetchData} className="btn btn-secondary btn-sm">🔄 Refresh</button>
+            <button onClick={fetchData} className="btn btn-secondary btn-sm" style={{ gap: "5px", display: "inline-flex", alignItems: "center" }}>
+              <RefreshCw size={12} /> Refresh
+            </button>
           </div>
 
           {loadingData ? (
@@ -430,7 +454,7 @@ export default function WasteCollection() {
             </div>
           ) : requests.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">📭</div>
+              <div className="empty-icon"><Inbox size={28} color="var(--text-muted)" /></div>
               <h3>No pickup requests</h3>
               <p>Citizen pickup requests will appear here.</p>
             </div>
@@ -481,18 +505,18 @@ export default function WasteCollection() {
                               <button
                                 onClick={() => updateRequestStatus(r._id, "Scheduled")}
                                 className="btn btn-sm"
-                                style={{ background: "#dbeafe", color: "#1e40af", border: "1px solid #93c5fd" }}
+                                style={{ background: "#dbeafe", color: "#1e40af", border: "1px solid #93c5fd", gap: "4px", display: "inline-flex", alignItems: "center" }}
                               >
-                                📅 Schedule
+                                <Calendar size={11} /> Schedule
                               </button>
                             )}
                             {r.status === "Scheduled" && (
                               <button
                                 onClick={() => updateRequestStatus(r._id, "Completed")}
                                 className="btn btn-sm"
-                                style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac" }}
+                                style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac", gap: "4px", display: "inline-flex", alignItems: "center" }}
                               >
-                                ✅ Complete
+                                <CheckCircle2 size={11} /> Complete
                               </button>
                             )}
                             {r.status === "Completed" && (

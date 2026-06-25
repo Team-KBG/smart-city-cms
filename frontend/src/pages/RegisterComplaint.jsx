@@ -3,6 +3,10 @@ import API from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { ALL_CATEGORIES } from "../utils/constants";
+import {
+  CheckCircle2, Camera, X, Cpu, MapPin, AlertTriangle,
+  User, Zap, Tag, Building2, Search, PlusCircle, Siren
+} from "lucide-react";
 
 export default function RegisterComplaint() {
   const { user } = useAuth();
@@ -196,69 +200,84 @@ export default function RegisterComplaint() {
     return (
       <div style={{ maxWidth: "540px", margin: "0 auto" }} className="animate-scale-in">
         <div className="card" style={{ textAlign: "center", padding: "48px 32px" }}>
-          <div style={{ fontSize: "56px", marginBottom: "16px" }}>✅</div>
+          <div style={{
+            width: "72px", height: "72px", borderRadius: "50%",
+            background: "linear-gradient(135deg, #16a34a, #22c55e)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 20px",
+            boxShadow: "0 8px 24px rgba(34,197,94,0.3)",
+          }}>
+            <CheckCircle2 size={36} color="white" />
+          </div>
           <h2 style={{ fontSize: "22px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "8px" }}>
             Complaint Registered!
           </h2>
-          <p style={{ color: "var(--text-secondary)", marginBottom: "24px", fontSize: "14px" }}>
+          <p style={{ color: "var(--text-secondary)", marginBottom: "28px", fontSize: "14px", lineHeight: "1.6" }}>
             Your complaint has been submitted and will be reviewed by the appropriate department.
           </p>
 
           <div style={{
             background: "var(--bg-surface-alt)",
-            borderRadius: "12px",
+            borderRadius: "14px",
             padding: "20px",
             marginBottom: "24px",
             textAlign: "left",
+            border: "1px solid var(--border-color)",
           }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <InfoRow label="Complaint ID">
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              <InfoRow label="Complaint ID" icon={<Tag size={13} />}>
                 <span style={{
                   fontFamily: "monospace",
                   fontWeight: "700",
                   fontSize: "15px",
                   color: "var(--primary-600)",
-                  background: "var(--primary-50)",
+                  background: "rgba(59,130,246,0.08)",
                   padding: "3px 10px",
                   borderRadius: "6px",
+                  border: "1px solid rgba(59,130,246,0.15)",
                 }}>
                   {result.complaintId}
                 </span>
               </InfoRow>
-              <InfoRow label="Category">{result.category}</InfoRow>
-              <InfoRow label="Department">{result.department || "Auto-assigning..."}</InfoRow>
-              <InfoRow label="Priority">
+              <InfoRow label="Category" icon={<Tag size={13} />}>{result.category}</InfoRow>
+              <InfoRow label="Department" icon={<Building2 size={13} />}>{result.department || "Auto-assigning..."}</InfoRow>
+              <InfoRow label="Priority" icon={<Zap size={13} />}>
                 <PriorityBadge priority={result.priority} />
               </InfoRow>
-              <InfoRow label="Status">
+              <InfoRow label="Status" icon={<CheckCircle2 size={13} />}>
                 <StatusChip status={result.status} />
               </InfoRow>
               {result.isEmergency && (
                 <div style={{
-                  background: "#fef2f2",
-                  border: "1px solid #fca5a5",
-                  borderRadius: "8px",
-                  padding: "8px 12px",
+                  background: "rgba(239,68,68,0.08)",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                  borderRadius: "10px",
+                  padding: "10px 14px",
                   fontSize: "12px",
                   color: "#dc2626",
                   fontWeight: "700",
                   textAlign: "center",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
                 }}>
-                  🚨 This has been flagged as an EMERGENCY and escalated immediately
+                  <Siren size={14} /> This has been flagged as an EMERGENCY and escalated immediately
                 </div>
               )}
             </div>
           </div>
 
           <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={handleReset} className="btn btn-primary">
-              ➕ Register Another
+            <button onClick={handleReset} className="btn btn-primary" style={{ gap: "8px", display: "inline-flex", alignItems: "center" }}>
+              <PlusCircle size={16} /> Register Another
             </button>
             <button
               onClick={() => window.location.href = `/track?id=${result.complaintId}`}
               className="btn btn-secondary"
+              style={{ gap: "8px", display: "inline-flex", alignItems: "center" }}
             >
-              🔍 Track This Complaint
+              <Search size={16} /> Track This Complaint
             </button>
           </div>
         </div>
@@ -270,13 +289,23 @@ export default function RegisterComplaint() {
   return (
     <div style={{ maxWidth: "680px", margin: "0 auto" }}>
       <div className="page-header">
-        <h1 style={{ fontSize: "26px" }}>📝 Register Complaint</h1>
+        <h1 style={{ fontSize: "26px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{
+            width: "38px", height: "38px", borderRadius: "10px",
+            background: "linear-gradient(135deg, var(--primary-600), var(--primary-500))",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <PlusCircle size={20} color="white" />
+          </span>
+          Register Complaint
+        </h1>
         <p>Report a civic issue. Your identity is auto-filled from your account.</p>
       </div>
 
       {/* Submitting as banner */}
       <div className="alert alert-info" style={{ marginBottom: "20px" }}>
-        <span>👤</span>
+        <User size={16} style={{ flexShrink: 0 }} />
         <div>
           <strong>Submitting as:</strong> {user?.name}{" "}
           <span style={{ color: "var(--text-muted)", fontSize: "12px" }}>({user?.email})</span>
@@ -290,7 +319,7 @@ export default function RegisterComplaint() {
       >
         {error && (
           <div className="alert alert-error">
-            <span>⚠️</span>
+            <AlertTriangle size={16} style={{ flexShrink: 0 }} />
             <span>{error}</span>
           </div>
         )}
@@ -341,10 +370,10 @@ export default function RegisterComplaint() {
         )}
         {aiPreview && !aiLoading && (
           <div className="alert alert-info animate-fade-in" style={{ flexWrap: "wrap", gap: "6px" }}>
-            <span>🤖</span>
+            <Cpu size={15} style={{ flexShrink: 0, color: "var(--primary-500)" }} />
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
               <span><strong>AI Suggestion:</strong></span>
-              <span style={{ background: "var(--primary-100, #dbeafe)", color: "var(--primary-700, #1d4ed8)", padding: "2px 8px", borderRadius: "6px", fontSize: "12px", fontWeight: "600" }}>
+              <span style={{ background: "rgba(59,130,246,0.12)", color: "var(--primary-600)", padding: "2px 8px", borderRadius: "6px", fontSize: "12px", fontWeight: "600", border: "1px solid rgba(59,130,246,0.2)" }}>
                 {aiPreview.category}
               </span>
               <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>→ {aiPreview.department}</span>
@@ -356,8 +385,9 @@ export default function RegisterComplaint() {
                   background: "#ef4444", color: "white",
                   padding: "2px 8px", borderRadius: "20px",
                   fontSize: "11px", fontWeight: "700",
+                  display: "inline-flex", alignItems: "center", gap: "4px",
                 }}>
-                  🚨 EMERGENCY
+                  <Siren size={10} /> EMERGENCY
                 </span>
               )}
             </div>
@@ -374,8 +404,8 @@ export default function RegisterComplaint() {
             ))}
           </select>
           {form.category && aiPreview && form.category !== aiPreview.category && (
-            <p style={{ fontSize: "11px", color: "var(--warning-600, #d97706)", marginTop: "3px" }}>
-              ⚠️ You selected "{form.category}" but AI suggests "{aiPreview.category}"
+            <p style={{ fontSize: "11px", color: "var(--warning-600, #d97706)", marginTop: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
+              <AlertTriangle size={11} /> You selected "{form.category}" but AI suggests "{aiPreview.category}"
             </p>
           )}
         </div>
@@ -392,18 +422,18 @@ export default function RegisterComplaint() {
           />
           {gpsLocation.latitude ? (
             <p style={{ fontSize: "12px", color: "#16a34a", marginTop: "5px", display: "flex", alignItems: "center", gap: "4px" }}>
-              📍 GPS captured: {gpsLocation.latitude.toFixed(5)}, {gpsLocation.longitude.toFixed(5)}
+              <MapPin size={12} /> GPS captured: {gpsLocation.latitude.toFixed(5)}, {gpsLocation.longitude.toFixed(5)}
             </p>
           ) : (
-            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "5px" }}>
-              📍 Allow location access for better nearby detection
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "5px", display: "flex", alignItems: "center", gap: "4px" }}>
+              <MapPin size={12} /> Allow location access for better nearby detection
             </p>
           )}
         </div>
 
         {/* Image Upload */}
         <div className="form-group">
-          <label>Photo Evidence (optional)</label>
+          <label>Photo Evidence <span style={{ fontWeight: "400", color: "var(--text-muted)", fontSize: "11px" }}>(optional)</span></label>
           {!image ? (
             <label
               htmlFor="image-upload"
@@ -412,24 +442,38 @@ export default function RegisterComplaint() {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "8px",
-                padding: "24px",
+                gap: "10px",
+                padding: "32px 24px",
                 border: "2px dashed var(--border-color-strong)",
-                borderRadius: "12px",
+                borderRadius: "14px",
                 background: "var(--bg-surface-alt)",
                 cursor: "pointer",
-                transition: "border-color 0.2s ease",
+                transition: "all 0.2s ease",
               }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--primary-400)"}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-color-strong)"}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--primary-400)";
+                e.currentTarget.style.background = "rgba(59,130,246,0.03)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--border-color-strong)";
+                e.currentTarget.style.background = "var(--bg-surface-alt)";
+              }}
             >
-              <span style={{ fontSize: "32px" }}>📷</span>
-              <span style={{ fontSize: "13px", color: "var(--text-secondary)", fontWeight: "500" }}>
-                Click to upload an image
-              </span>
-              <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                JPG, PNG, GIF, WebP — max 5MB
-              </span>
+              <div style={{
+                width: "48px", height: "48px", borderRadius: "12px",
+                background: "rgba(59,130,246,0.08)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Camera size={22} color="var(--primary-500)" />
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <span style={{ fontSize: "13px", color: "var(--text-secondary)", fontWeight: "600", display: "block" }}>
+                  Click to upload an image
+                </span>
+                <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                  JPG, PNG, GIF, WebP — max 5MB
+                </span>
+              </div>
               <input
                 id="image-upload"
                 type="file"
@@ -439,44 +483,51 @@ export default function RegisterComplaint() {
               />
             </label>
           ) : (
-            <div style={{ position: "relative", display: "inline-block" }}>
-              <img
-                src={imagePreview}
-                alt="Preview"
-                style={{
-                  width: "150px",
-                  height: "100px",
-                  objectFit: "cover",
-                  borderRadius: "10px",
-                  border: "2px solid var(--border-color)",
-                  display: "block",
-                }}
-              />
-              <button
-                type="button"
-                onClick={removeImage}
-                style={{
-                  position: "absolute",
-                  top: "-8px",
-                  right: "-8px",
-                  width: "24px",
-                  height: "24px",
-                  borderRadius: "50%",
-                  background: "#ef4444",
-                  color: "white",
-                  border: "2px solid white",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                  fontWeight: "700",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  lineHeight: 1,
-                }}
-              >
-                ✕
-              </button>
-              <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "6px" }}>{image.name}</p>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+              <div style={{ position: "relative", display: "inline-block" }}>
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  style={{
+                    width: "120px",
+                    height: "90px",
+                    objectFit: "cover",
+                    borderRadius: "10px",
+                    border: "2px solid var(--border-color)",
+                    display: "block",
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  style={{
+                    position: "absolute",
+                    top: "-8px",
+                    right: "-8px",
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: "50%",
+                    background: "#ef4444",
+                    color: "white",
+                    border: "2px solid var(--card-bg)",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    fontWeight: "700",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    lineHeight: 1,
+                  }}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+              <div>
+                <p style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)" }}>{image.name}</p>
+                <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
+                  {(image.size / 1024).toFixed(0)} KB
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -488,12 +539,12 @@ export default function RegisterComplaint() {
             style={{
               border: "1.5px solid #f59e0b",
               borderRadius: "14px",
-              background: "var(--warning-50, #fffbeb)",
+              background: "rgba(245,158,11,0.06)",
               padding: "20px",
             }}
           >
-            <p style={{ fontWeight: "700", color: "#92400e", marginBottom: "4px", fontSize: "14px" }}>
-              ⚠️ Similar complaint already exists nearby!
+            <p style={{ fontWeight: "700", color: "#92400e", marginBottom: "4px", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
+              <AlertTriangle size={15} /> Similar complaint already exists nearby!
             </p>
             <p style={{ fontSize: "13px", color: "#78350f", marginBottom: "16px" }}>
               Would you like to support an existing complaint instead of creating a duplicate?
@@ -507,7 +558,7 @@ export default function RegisterComplaint() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    background: "white",
+                    background: "var(--card-bg)",
                     borderRadius: "10px",
                     padding: "12px 14px",
                     border: "1px solid #fcd34d",
@@ -516,8 +567,8 @@ export default function RegisterComplaint() {
                   }}
                 >
                   <div>
-                    <p style={{ fontWeight: "600", fontSize: "13px", color: "#1c1917", marginBottom: "2px" }}>{c.title}</p>
-                    <p style={{ fontSize: "12px", color: "#78350f" }}>
+                    <p style={{ fontWeight: "600", fontSize: "13px", color: "var(--text-primary)", marginBottom: "2px" }}>{c.title}</p>
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                       {c.complaintId} • 👍 {c.supportCount} supports
                     </p>
                   </div>
@@ -566,7 +617,12 @@ export default function RegisterComplaint() {
                 <span className="spinner" style={{ width: "16px", height: "16px", borderWidth: "2px" }} />
                 Submitting...
               </>
-            ) : "🚀 Submit Complaint"}
+            ) : (
+              <>
+                <Zap size={16} />
+                Submit Complaint
+              </>
+            )}
           </button>
         )}
       </form>
@@ -576,10 +632,11 @@ export default function RegisterComplaint() {
 
 // ── Helper Components ────────────────────────────────────────
 
-function InfoRow({ label, children }) {
+function InfoRow({ label, icon, children }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
-      <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.04em", flexShrink: 0 }}>
+      <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.04em", flexShrink: 0, display: "flex", alignItems: "center", gap: "5px" }}>
+        {icon && <span style={{ color: "var(--text-muted)" }}>{icon}</span>}
         {label}
       </span>
       <span style={{ fontWeight: "600", color: "var(--text-primary)", fontSize: "13px", textAlign: "right" }}>

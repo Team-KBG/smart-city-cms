@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
 import AnalyticsCharts from "../components/AnalyticsCharts";
+import { BarChart3, RefreshCw, AlertTriangle } from "lucide-react";
 
 export default function Analytics() {
   const [analytics, setAnalytics] = useState(null);
@@ -26,7 +27,15 @@ export default function Analytics() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginBottom: "28px" }}>
         <div>
-          <h1 style={{ fontSize: "26px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "4px" }}>
+          <h1 style={{ fontSize: "26px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{
+              width: "38px", height: "38px", borderRadius: "10px",
+              background: "linear-gradient(135deg, #7c3aed, #6d28d9)",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}>
+              <BarChart3 size={20} color="white" />
+            </span>
             Smart Analytics Dashboard
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
@@ -37,8 +46,9 @@ export default function Analytics() {
           onClick={fetchAnalytics}
           className="btn btn-secondary"
           disabled={loading}
+          style={{ gap: "6px", display: "inline-flex", alignItems: "center" }}
         >
-          🔄 Refresh
+          <RefreshCw size={14} /> Refresh
         </button>
       </div>
 
@@ -58,7 +68,7 @@ export default function Analytics() {
 
       {error && !loading && (
         <div className="alert alert-error">
-          <span>⚠️</span>
+          <AlertTriangle size={15} style={{ flexShrink: 0 }} />
           <span>{error}</span>
         </div>
       )}

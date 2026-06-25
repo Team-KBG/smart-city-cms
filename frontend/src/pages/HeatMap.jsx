@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import API from "../api/axios";
 import HeatMapView from "../components/HeatMapView";
+import { Map, BarChart3, AlertTriangle, Lightbulb } from "lucide-react";
 
 // Category emoji quick-lookup
 const CAT_EMOJI = {
@@ -116,8 +117,16 @@ export default function HeatMap() {
       {/* Page Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px", marginBottom: "24px" }}>
         <div>
-          <h1 style={{ fontSize: "26px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "4px" }}>
-            🗺️ Complaint Heat Map
+          <h1 style={{ fontSize: "26px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{
+              width: "38px", height: "38px", borderRadius: "10px",
+              background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}>
+              <Map size={20} color="white" />
+            </span>
+            Complaint Heat Map
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
             Visualize complaint hotspots. Click any marker to see details. Clusters show dense areas.
@@ -149,9 +158,9 @@ export default function HeatMap() {
           { label: "Total", value: stats.total, color: "#475569" },
           { label: "On Map", value: stats.mapped, color: "#2563eb" },
           { label: "No GPS", value: stats.unmapped, color: "#94a3b8" },
-          { label: "🚨 Emergency", value: stats.emergencies, color: "#dc2626" },
-          { label: "⏳ Pending", value: stats.pending, color: "#d97706" },
-          { label: "✅ Resolved", value: stats.resolved, color: "#16a34a" },
+          { label: "Emergency", value: stats.emergencies, color: "#dc2626" },
+          { label: "Pending", value: stats.pending, color: "#d97706" },
+          { label: "Resolved", value: stats.resolved, color: "#16a34a" },
         ].map((s) => (
           <div key={s.label} className="card" style={{ padding: "12px 14px", textAlign: "center" }}>
             <p style={{ fontSize: "20px", fontWeight: "800", color: s.color, lineHeight: 1 }}>{s.value}</p>
@@ -223,7 +232,7 @@ export default function HeatMap() {
       {/* Error state */}
       {error && (
         <div className="alert alert-error" style={{ marginBottom: "12px" }}>
-          <span>⚠️</span><span>{error}</span>
+          <AlertTriangle size={15} style={{ flexShrink: 0 }} /><span>{error}</span>
         </div>
       )}
 
@@ -240,8 +249,8 @@ export default function HeatMap() {
       {!loading && categoryBreakdown.length > 0 && (
         <div className="card" style={{ marginTop: "20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-            <h3 style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)" }}>
-              📊 Category Breakdown (Mapped Complaints)
+            <h3 style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
+              <BarChart3 size={15} color="var(--primary-500)" /> Category Breakdown (Mapped Complaints)
             </h3>
             <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
               {mappableComplaints.length} complaints with location
@@ -276,7 +285,7 @@ export default function HeatMap() {
           {/* Tip about GPS */}
           {stats.unmapped > 0 && (
             <div className="alert alert-warning" style={{ marginTop: "14px" }}>
-              <span>💡</span>
+              <Lightbulb size={14} style={{ flexShrink: 0, color: "#d97706" }} />
               <span>
                 <strong>{stats.unmapped} complaint{stats.unmapped !== 1 ? "s" : ""}</strong> have no GPS data and are not shown on the map.
                 Citizens should allow location access when submitting complaints.

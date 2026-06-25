@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import API from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+import { Eye, EyeOff, AlertCircle, Info } from "lucide-react";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -50,19 +51,19 @@ export default function Signup() {
   const passwordStrength = (() => {
     const len = form.password.length;
     if (len === 0) return null;
-    if (len < 6) return { label: "Too short", color: "#ef4444", width: "20%" };
-    if (len < 8) return { label: "Weak", color: "#f59e0b", width: "40%" };
-    if (len < 12) return { label: "Good", color: "#3b82f6", width: "70%" };
-    return { label: "Strong", color: "#22c55e", width: "100%" };
+    if (len < 6) return { label: "Too short", color: "var(--danger-500)", width: "20%" };
+    if (len < 8) return { label: "Weak", color: "var(--warning-500)", width: "40%" };
+    if (len < 12) return { label: "Good", color: "var(--primary-500)", width: "70%" };
+    return { label: "Strong", color: "var(--success-500)", width: "100%" };
   })();
 
   return (
     <div style={{
-      minHeight: "calc(100vh - 60px)",
+      minHeight: "calc(100vh - 120px)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: "20px",
+      padding: "24px",
     }}>
       <div style={{ width: "100%", maxWidth: "420px" }}>
         {/* Header */}
@@ -70,32 +71,32 @@ export default function Signup() {
           <div style={{
             width: "56px",
             height: "56px",
-            borderRadius: "16px",
-            background: "linear-gradient(135deg, #1d4ed8, #3b82f6)",
+            borderRadius: "14px",
+            background: "linear-gradient(135deg, var(--primary-600), var(--primary-500))",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "24px",
-            fontWeight: "800",
+            fontSize: "20px",
+            fontWeight: "900",
             color: "white",
             margin: "0 auto 16px",
-            boxShadow: "0 4px 16px rgba(59,130,246,0.4)",
+            boxShadow: "0 4px 16px rgba(59,130,246,0.3)",
           }}>
             SC
           </div>
-          <h1 style={{ fontSize: "26px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "6px" }}>
+          <h1 style={{ fontSize: "28px", fontWeight: "900", color: "var(--text-primary)", marginBottom: "8px", letterSpacing: "-0.02em" }}>
             Create account
           </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "500" }}>
             Join Smart City and report civic issues
           </p>
         </div>
 
         {/* Form Card */}
-        <div className="form-section">
+        <div className="form-section animate-fade-in" style={{ boxShadow: "var(--shadow-lg)" }}>
           {error && (
-            <div className="alert alert-error" style={{ marginBottom: "20px" }}>
-              <span>⚠️</span>
+            <div className="alert alert-error" style={{ marginBottom: "20px", gap: "8px", alignItems: "center" }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
               <span>{error}</span>
             </div>
           )}
@@ -151,20 +152,21 @@ export default function Signup() {
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    fontSize: "16px",
                     padding: "2px",
-                    color: "var(--text-muted)",
+                    color: "var(--text-secondary)",
                     width: "auto",
+                    display: "flex",
+                    alignItems: "center"
                   }}
                   tabIndex={-1}
                 >
-                  {showPassword ? "🙈" : "👁️"}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               {/* Password strength */}
               {passwordStrength && (
-                <div style={{ marginTop: "6px" }}>
-                  <div style={{ height: "3px", borderRadius: "3px", background: "var(--border-color)" }}>
+                <div style={{ marginTop: "8px" }}>
+                  <div style={{ height: "4px", borderRadius: "3px", background: "var(--border-color)" }}>
                     <div style={{
                       height: "100%",
                       width: passwordStrength.width,
@@ -173,7 +175,7 @@ export default function Signup() {
                       transition: "width 0.3s ease, background 0.3s ease",
                     }} />
                   </div>
-                  <p style={{ fontSize: "11px", color: passwordStrength.color, marginTop: "3px" }}>
+                  <p style={{ fontSize: "11px", color: passwordStrength.color, marginTop: "4px", fontWeight: "600" }}>
                     {passwordStrength.label}
                   </p>
                 </div>
@@ -195,9 +197,9 @@ export default function Signup() {
             </button>
           </form>
 
-          <p style={{ textAlign: "center", marginTop: "20px", fontSize: "13px", color: "var(--text-muted)" }}>
+          <p style={{ textAlign: "center", marginTop: "24px", fontSize: "13px", color: "var(--text-secondary)" }}>
             Already have an account?{" "}
-            <Link to="/login" style={{ color: "var(--primary-600)", fontWeight: "600", textDecoration: "none" }}>
+            <Link to="/login" style={{ color: "var(--primary-600)", fontWeight: "700", textDecoration: "none" }}>
               Sign in
             </Link>
           </p>
@@ -208,13 +210,18 @@ export default function Signup() {
           marginTop: "16px",
           padding: "12px 16px",
           background: "var(--bg-surface-alt)",
-          border: "1px solid var(--border-color)",
+          border: "1.5px solid var(--border-color)",
           borderRadius: "12px",
           fontSize: "12px",
-          color: "var(--text-muted)",
+          color: "var(--text-secondary)",
           textAlign: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "6px"
         }}>
-          🔒 Your account will be created as a <strong>Citizen</strong>
+          <Info size={14} style={{ color: "var(--primary-500)", flexShrink: 0 }} />
+          <span>Your account will be created as a <strong>Citizen</strong></span>
         </div>
       </div>
     </div>

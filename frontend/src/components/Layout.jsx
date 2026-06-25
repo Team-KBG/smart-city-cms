@@ -7,7 +7,7 @@ export default function Layout({ children }) {
       <main style={{
         maxWidth: "1280px",
         margin: "0 auto",
-        padding: "32px 20px 60px",
+        padding: "32px 24px 60px",
       }}>
         {children}
       </main>

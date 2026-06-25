@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import API from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { Trophy, RefreshCw, Star, FileText, ThumbsUp, CheckCircle2, RotateCcw } from "lucide-react";
 
 const LEVEL_CONFIG = {
   "Gold Citizen": { icon: "🥇", bg: "#fef9c3", color: "#713f12", border: "#fde047" },
@@ -53,7 +54,17 @@ export default function Leaderboard() {
   return (
     <div style={{ maxWidth: "700px", margin: "0 auto" }}>
       <div className="page-header">
-        <h1 style={{ fontSize: "26px" }}>🏆 Citizen Leaderboard</h1>
+        <h1 style={{ fontSize: "26px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{
+            width: "38px", height: "38px", borderRadius: "10px",
+            background: "linear-gradient(135deg, #f59e0b, #d97706)",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <Trophy size={20} color="white" />
+          </span>
+          Citizen Leaderboard
+        </h1>
         <p>
           Citizens earn points for reporting issues, supporting complaints, and community participation.
         </p>
@@ -61,15 +72,15 @@ export default function Leaderboard() {
 
       {/* Point system explainer */}
       <div className="card" style={{ marginBottom: "24px" }}>
-        <h3 style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "14px" }}>
-          🎯 How to Earn Points
+        <h3 style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
+          <Star size={14} color="var(--primary-500)" /> How to Earn Points
         </h3>
         <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}>
           {[
-            { icon: "📝", label: "Submit a complaint", pts: "+10 pts" },
-            { icon: "✅", label: "Complaint resolved", pts: "+25 pts" },
-            { icon: "👍", label: "Support others", pts: "+5 pts" },
-            { icon: "🔄", label: "Report follow-up", pts: "+15 pts" },
+            { Icon: FileText, label: "Submit a complaint", pts: "+10 pts" },
+            { Icon: CheckCircle2, label: "Complaint resolved", pts: "+25 pts" },
+            { Icon: ThumbsUp, label: "Support others", pts: "+5 pts" },
+            { Icon: RotateCcw, label: "Report follow-up", pts: "+15 pts" },
           ].map((item) => (
             <div
               key={item.label}
@@ -84,7 +95,7 @@ export default function Leaderboard() {
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "20px" }}>{item.icon}</span>
+                <item.Icon size={18} color="var(--primary-500)" />
                 <span style={{ fontSize: "12px", fontWeight: "800", color: "#16a34a" }}>{item.pts}</span>
               </div>
               <p style={{ fontSize: "11px", color: "var(--text-secondary)", fontWeight: "500" }}>{item.label}</p>
@@ -185,11 +196,11 @@ export default function Leaderboard() {
       {/* Leaderboard */}
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
         <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h3 style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>
-            Top Citizens
+          <h3 style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
+            <Trophy size={15} color="#f59e0b" /> Top Citizens
           </h3>
-          <button onClick={fetchData} className="btn btn-secondary btn-sm" disabled={loading}>
-            🔄 Refresh
+          <button onClick={fetchData} className="btn btn-secondary btn-sm" disabled={loading} style={{ gap: "5px", display: "inline-flex", alignItems: "center" }}>
+            <RefreshCw size={12} /> Refresh
           </button>
         </div>
 
@@ -201,7 +212,7 @@ export default function Leaderboard() {
           </div>
         ) : leaders.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🏆</div>
+            <div className="empty-icon"><Trophy size={32} color="var(--text-muted)" /></div>
             <h3>No citizens yet</h3>
             <p>Be the first to earn reputation points by reporting issues!</p>
           </div>

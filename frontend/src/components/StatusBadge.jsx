@@ -1,9 +1,9 @@
 const STATUS_CONFIG = {
-  Pending: { bg: "#fef3c7", color: "#92400e", border: "#fcd34d", dot: "#f59e0b" },
-  Assigned: { bg: "#dbeafe", color: "#1e40af", border: "#93c5fd", dot: "#3b82f6" },
-  "In Progress": { bg: "#ede9fe", color: "#5b21b6", border: "#c4b5fd", dot: "#8b5cf6" },
-  Resolved: { bg: "#dcfce7", color: "#14532d", border: "#86efac", dot: "#22c55e" },
-  Reopened: { bg: "#ffedd5", color: "#9a3412", border: "#fed7aa", dot: "#f97316" },
+  Pending: { bg: "rgba(245, 158, 11, 0.08)", color: "#d97706", border: "rgba(245, 158, 11, 0.25)", dot: "#f59e0b" },
+  Assigned: { bg: "rgba(59, 130, 246, 0.08)", color: "#2563eb", border: "rgba(59, 130, 246, 0.25)", dot: "#3b82f6" },
+  "In Progress": { bg: "rgba(124, 58, 237, 0.08)", color: "#8b5cf6", border: "rgba(124, 58, 237, 0.25)", dot: "#8b5cf6" },
+  Resolved: { bg: "rgba(34, 197, 94, 0.08)", color: "#16a34a", border: "rgba(34, 197, 94, 0.25)", dot: "#22c55e" },
+  Reopened: { bg: "rgba(249, 115, 22, 0.08)", color: "#ea580c", border: "rgba(249, 115, 22, 0.25)", dot: "#f97316" },
 };
 
 export default function StatusBadge({ status }) {

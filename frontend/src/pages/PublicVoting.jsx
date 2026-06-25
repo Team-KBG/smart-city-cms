@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import API from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+import { Vote, MapPin, RefreshCw, Search, PlusCircle, AlertTriangle } from "lucide-react";
 
 // ── Proposal type metadata ────────────────────────────────────────────────────
 const VOTE_TYPE_META = {
@@ -689,11 +690,11 @@ export default function PublicVoting() {
 
   // ── Tabs ──────────────────────────────────────────────────────
   const tabs = isAdmin ? [
-    { key: "browse", label: "🗳️ Browse Proposals" },
-    { key: "manage", label: "⚙️ Manage (Admin)" },
+    { key: "browse", label: "Browse Proposals" },
+    { key: "manage", label: "Manage (Admin)" },
   ] : [
-    { key: "browse", label: "🗳️ Browse & Vote" },
-    { key: "propose", label: "✨ Propose Improvement" },
+    { key: "browse", label: "Browse & Vote" },
+    { key: "propose", label: "Propose Improvement" },
   ];
 
   return (
@@ -701,8 +702,16 @@ export default function PublicVoting() {
 
       {/* Header */}
       <div style={{ marginBottom: "20px" }}>
-        <h1 style={{ fontSize: "26px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "4px" }}>
-          🗳️ Community Improvement Proposals
+        <h1 style={{ fontSize: "26px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{
+            width: "38px", height: "38px", borderRadius: "10px",
+            background: "linear-gradient(135deg, #7c3aed, #6d28d9)",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <Vote size={20} color="white" />
+          </span>
+          Community Improvement Proposals
         </h1>
         <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
           {isAdmin

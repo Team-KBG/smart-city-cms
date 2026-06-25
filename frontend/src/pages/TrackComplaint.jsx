@@ -4,6 +4,11 @@ import API from "../api/axios";
 import StatusBadge from "../components/StatusBadge";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
+import {
+  Search, Tag, Building2, Zap, ThumbsUp, MapPin, Calendar,
+  AlertTriangle, Image, List, ClipboardList, ChevronRight,
+  CheckCircle2, RefreshCw, LogIn, FileText
+} from "lucide-react";
 
 const STATUS_ORDER = ["Pending", "Assigned", "In Progress", "Resolved"];
 
@@ -112,7 +117,17 @@ export default function TrackComplaint() {
   return (
     <div style={{ maxWidth: "700px", margin: "0 auto" }}>
       <div className="page-header">
-        <h1 style={{ fontSize: "26px" }}>🔍 Track Complaint</h1>
+        <h1 style={{ fontSize: "26px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{
+            width: "38px", height: "38px", borderRadius: "10px",
+            background: "linear-gradient(135deg, var(--primary-600), var(--primary-500))",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <Search size={20} color="white" />
+          </span>
+          Track Complaint
+        </h1>
         <p>Enter your unique Complaint ID to view real-time status and updates.</p>
       </div>
 
@@ -129,17 +144,19 @@ export default function TrackComplaint() {
           type="submit"
           disabled={loading}
           className="btn btn-primary"
-          style={{ flexShrink: 0 }}
+          style={{ flexShrink: 0, gap: "6px", display: "inline-flex", alignItems: "center" }}
         >
           {loading ? (
             <><span className="spinner" style={{ width: "14px", height: "14px", borderWidth: "2px" }} /> Searching...</>
-          ) : "🔍 Track"}
+          ) : (
+            <><Search size={15} /> Track</>
+          )}
         </button>
       </form>
 
       {error && (
         <div className="alert alert-error animate-fade-in">
-          <span>⚠️</span>
+          <AlertTriangle size={16} style={{ flexShrink: 0 }} />
           <span>{error}</span>
         </div>
       )}
@@ -169,6 +186,7 @@ export default function TrackComplaint() {
                     fontWeight: "700",
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
+                    display: "inline-flex", alignItems: "center", gap: "4px",
                   }}>
                     🚨 EMERGENCY
                   </span>
@@ -248,7 +266,7 @@ export default function TrackComplaint() {
 
             {complaint.status === "Reopened" && (
               <div className="alert alert-warning" style={{ marginTop: "16px" }}>
-                <span>🔄</span>
+                <RefreshCw size={15} style={{ flexShrink: 0 }} />
                 <span>This complaint was reopened and is under review again.</span>
               </div>
             )}
@@ -257,22 +275,22 @@ export default function TrackComplaint() {
           {/* Details Grid */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(175px, 1fr))", gap: "10px" }}>
             {[
-              { label: "Category", value: complaint.category, icon: "🏷️" },
-              { label: "Department", value: complaint.department || "Not yet assigned", icon: "🏢" },
-              { label: "Priority", value: complaint.effectivePriority || complaint.priority, icon: "⚡" },
-              { label: "Supporters", value: `${complaint.supportCount} people`, icon: "👍" },
-              { label: "Location", value: complaint.address || "Not specified", icon: "📍" },
+              { label: "Category", value: complaint.category, Icon: Tag },
+              { label: "Department", value: complaint.department || "Not yet assigned", Icon: Building2 },
+              { label: "Priority", value: complaint.effectivePriority || complaint.priority, Icon: Zap },
+              { label: "Supporters", value: `${complaint.supportCount} people`, Icon: ThumbsUp },
+              { label: "Location", value: complaint.address || "Not specified", Icon: MapPin },
               {
                 label: "Reported on",
                 value: new Date(complaint.createdAt).toLocaleDateString("en-IN", {
                   day: "numeric", month: "short", year: "numeric",
                 }),
-                icon: "📅",
+                Icon: Calendar,
               },
-            ].map(({ label, value, icon }) => (
+            ].map(({ label, value, Icon }) => (
               <div key={label} className="card" style={{ padding: "14px" }}>
-                <p style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "5px" }}>
-                  {icon} {label}
+                <p style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "5px", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <Icon size={11} /> {label}
                 </p>
                 <p style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)", wordBreak: "break-word" }}>
                   {value}
@@ -284,8 +302,8 @@ export default function TrackComplaint() {
           {/* Image */}
           {complaint.imageUrl && (
             <div className="card" style={{ padding: "16px" }}>
-              <p style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", marginBottom: "10px", textTransform: "uppercase" }}>
-                📷 Photo Evidence
+              <p style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", marginBottom: "10px", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "6px" }}>
+                <Image size={13} /> Photo Evidence
               </p>
               <img
                 src={complaint.imageUrl.startsWith("http")
@@ -301,8 +319,8 @@ export default function TrackComplaint() {
           {/* Status History Timeline */}
           {complaint.statusHistory?.length > 0 && (
             <div className="card">
-              <h3 style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "16px" }}>
-                📋 Status History
+              <h3 style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
+                <List size={15} /> Status History
               </h3>
               <div style={{ paddingLeft: "12px" }}>
                 {[...complaint.statusHistory].reverse().map((entry, i) => (
@@ -358,8 +376,8 @@ export default function TrackComplaint() {
               gap: "12px",
             }}>
               <div>
-                <p style={{ fontWeight: "700", fontSize: "14px", color: "var(--text-primary)", marginBottom: "3px" }}>
-                  👍 Support this complaint
+                <p style={{ fontWeight: "700", fontSize: "14px", color: "var(--text-primary)", marginBottom: "3px", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <ThumbsUp size={15} /> Support this complaint
                 </p>
                 <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                   {complaint.supportCount} {complaint.supportCount === 1 ? "person" : "people"} have supported this
@@ -371,8 +389,8 @@ export default function TrackComplaint() {
                   <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                     Login to support
                   </p>
-                  <Link to="/login" className="btn btn-primary btn-sm">
-                    Sign In
+                  <Link to="/login" className="btn btn-primary btn-sm" style={{ gap: "6px", display: "inline-flex", alignItems: "center" }}>
+                    <LogIn size={13} /> Sign In
                   </Link>
                 </div>
               ) : isOwner ? (
@@ -380,18 +398,21 @@ export default function TrackComplaint() {
                   This is your complaint
                 </p>
               ) : hasSupported ? (
-                <button disabled className="btn btn-sm" style={{ background: "var(--success-50)", color: "var(--success-700)", border: "1px solid var(--success-500)", cursor: "not-allowed" }}>
-                  ✓ Already Supported
+                <button disabled className="btn btn-sm" style={{ background: "var(--success-50)", color: "var(--success-700)", border: "1px solid var(--success-500)", cursor: "not-allowed", gap: "5px", display: "inline-flex", alignItems: "center" }}>
+                  <CheckCircle2 size={13} /> Already Supported
                 </button>
               ) : (
                 <button
                   onClick={handleSupport}
                   disabled={supporting}
                   className="btn btn-primary"
+                  style={{ gap: "6px", display: "inline-flex", alignItems: "center" }}
                 >
                   {supporting ? (
                     <><span className="spinner" style={{ width: "14px", height: "14px", borderWidth: "2px" }} /> Supporting...</>
-                  ) : "👍 Support This Complaint"}
+                  ) : (
+                    <><ThumbsUp size={14} /> Support This Complaint</>
+                  )}
                 </button>
               )}
             </div>
@@ -399,7 +420,7 @@ export default function TrackComplaint() {
 
           {complaint.status === "Resolved" && (
             <div className="alert alert-success">
-              <span>🎉</span>
+              <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
               <span>
                 This complaint was <strong>resolved</strong>
                 {complaint.resolvedAt && ` on ${new Date(complaint.resolvedAt).toLocaleDateString("en-IN")}`}.
@@ -412,8 +433,9 @@ export default function TrackComplaint() {
 
       {isLoggedIn && (
         <div className="animate-fade-in" style={{ marginTop: "32px", borderTop: "1px solid var(--border-color)", paddingTop: "24px" }}>
-          <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "16px", color: "var(--text-primary)" }}>
-            📋 My Complaints
+          <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "16px", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+            <ClipboardList size={20} color="var(--primary-600)" />
+            My Complaints
           </h2>
 
           {/* Loading Skeleton */}
@@ -429,11 +451,11 @@ export default function TrackComplaint() {
           {myComplaintsError && !myComplaintsLoading && (
             <div className="alert alert-error" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <span>⚠️</span>
+                <AlertTriangle size={15} style={{ flexShrink: 0 }} />
                 <span>{myComplaintsError}</span>
               </div>
-              <button onClick={fetchMyComplaints} className="btn btn-secondary btn-sm" style={{ border: "1px solid var(--border-color)" }}>
-                🔄 Retry
+              <button onClick={fetchMyComplaints} className="btn btn-secondary btn-sm" style={{ border: "1px solid var(--border-color)", gap: "5px", display: "inline-flex", alignItems: "center" }}>
+                <RefreshCw size={12} /> Retry
               </button>
             </div>
           )}
@@ -441,7 +463,14 @@ export default function TrackComplaint() {
           {/* Empty State */}
           {!myComplaintsLoading && !myComplaintsError && myComplaints.length === 0 && (
             <div className="card empty-state" style={{ padding: "40px 20px", textAlign: "center" }}>
-              <div className="empty-icon" style={{ fontSize: "40px", marginBottom: "12px" }}>📝</div>
+              <div style={{
+                width: "60px", height: "60px", borderRadius: "16px",
+                background: "var(--bg-surface-alt)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 16px",
+              }}>
+                <FileText size={26} color="var(--text-muted)" />
+              </div>
               <h3 style={{ fontSize: "16px", color: "var(--text-secondary)", marginBottom: "8px" }}>
                 You haven't submitted any complaints yet.
               </h3>
@@ -478,8 +507,9 @@ export default function TrackComplaint() {
                         background: item.priority === "High" ? "var(--danger-50)" : item.priority === "Medium" ? "var(--warning-50)" : "var(--primary-50)",
                         color: item.priority === "High" ? "var(--danger-600)" : item.priority === "Medium" ? "var(--warning-600)" : "var(--primary-600)",
                         border: `1px solid ${item.priority === "High" ? "rgba(239,68,68,0.2)" : item.priority === "Medium" ? "rgba(245,158,11,0.2)" : "rgba(59,130,246,0.2)"}`,
+                        display: "inline-flex", alignItems: "center", gap: "3px",
                       }}>
-                        ⚡ {item.priority}
+                        <Zap size={10} /> {item.priority}
                       </span>
                     </div>
                   </div>
@@ -488,11 +518,19 @@ export default function TrackComplaint() {
                     {item.title}
                   </h3>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 16px", fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>
-                    <div><strong>🏷️ Category:</strong> {item.category}</div>
-                    <div><strong>🏢 Department:</strong> {item.department || "Unassigned"}</div>
-                    <div style={{ gridColumn: "1 / -1" }}><strong>📍 Location:</strong> {item.address || "Not specified"}</div>
-                    <div style={{ gridColumn: "1 / -1" }}><strong>📅 Submitted:</strong> {new Date(item.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "6px 16px", fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      <Tag size={11} style={{ flexShrink: 0 }} /> <strong>Category:</strong> {item.category}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      <Building2 size={11} style={{ flexShrink: 0 }} /> <strong>Department:</strong> {item.department || "Unassigned"}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px", gridColumn: "1 / -1" }}>
+                      <MapPin size={11} style={{ flexShrink: 0 }} /> <strong>Location:</strong> {item.address || "Not specified"}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px", gridColumn: "1 / -1" }}>
+                      <Calendar size={11} style={{ flexShrink: 0 }} /> <strong>Submitted:</strong> {new Date(item.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    </div>
                   </div>
 
                   <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px", borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
@@ -505,7 +543,7 @@ export default function TrackComplaint() {
                       className="btn btn-primary btn-sm"
                       style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: "600" }}
                     >
-                      Track
+                      <Search size={13} /> Track
                     </button>
                   </div>
                 </div>

@@ -3,8 +3,14 @@ import API from "../api/axios";
 import StatusBadge from "../components/StatusBadge";
 import { useToast } from "../context/ToastContext";
 import { DEPARTMENTS, STATUS_VALUES } from "../utils/constants";
+import {
+  LayoutDashboard, ClipboardList, Siren, Search, RefreshCw,
+  Pencil, Trash2, Check, X, Filter
+} from "lucide-react";
 
-const PRIORITY_LABELS = { Low: "🟢", Medium: "🟡", High: "🟠", Critical: "🔴" };
+const PRIORITY_COLORS = {
+  Low: "#16a34a", Medium: "#d97706", High: "#ea580c", Critical: "#dc2626"
+};
 
 export default function AdminDashboard() {
   const [complaints, setComplaints] = useState([]);
@@ -78,17 +84,27 @@ export default function AdminDashboard() {
   const regular = filteredComplaints.filter((c) => !c.isEmergency || c.status === "Resolved");
 
   const statsCards = [
-    { title: "Total Complaints", value: stats.total ?? 0, icon: "📋", color: "#2563eb", bg: "#dbeafe" },
-    { title: "Pending", value: stats.pending ?? 0, icon: "⏳", color: "#d97706", bg: "#fef3c7" },
-    { title: "Resolved", value: stats.resolved ?? 0, icon: "✅", color: "#16a34a", bg: "#dcfce7" },
-    { title: "Active Emergencies", value: stats.emergency ?? 0, icon: "🚨", color: "#dc2626", bg: "#fee2e2" },
+    { title: "Total Complaints", value: stats.total ?? 0, Icon: ClipboardList, color: "#2563eb", bg: "rgba(37,99,235,0.1)" },
+    { title: "Pending", value: stats.pending ?? 0, Icon: Filter, color: "#d97706", bg: "rgba(217,119,6,0.1)" },
+    { title: "Resolved", value: stats.resolved ?? 0, Icon: Check, color: "#16a34a", bg: "rgba(22,163,74,0.1)" },
+    { title: "Active Emergencies", value: stats.emergency ?? 0, Icon: Siren, color: "#dc2626", bg: "rgba(220,38,38,0.1)" },
   ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
       {/* Header */}
       <div className="page-header" style={{ marginBottom: 0 }}>
-        <h1 style={{ fontSize: "26px" }}>Admin Dashboard</h1>
+        <h1 style={{ fontSize: "26px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{
+            width: "38px", height: "38px", borderRadius: "10px",
+            background: "linear-gradient(135deg, var(--primary-600), var(--primary-500))",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <LayoutDashboard size={20} color="white" />
+          </span>
+          Admin Dashboard
+        </h1>
         <p>Manage complaints, assign departments, and monitor city operations.</p>
       </div>
 
@@ -104,10 +120,9 @@ export default function AdminDashboard() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "24px",
               flexShrink: 0,
             }}>
-              {card.icon}
+              <card.Icon size={22} color={card.color} />
             </div>
             <div>
               <p style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -133,7 +148,7 @@ export default function AdminDashboard() {
           gap: "12px",
           color: "white",
         }}>
-          <span style={{ fontSize: "24px" }}>🚨</span>
+          <Siren size={24} color="white" />
           <div>
             <p style={{ fontWeight: "700", fontSize: "15px" }}>
               {emergencies.length} Active Emergency {emergencies.length === 1 ? "Complaint" : "Complaints"}
@@ -149,7 +164,7 @@ export default function AdminDashboard() {
       <div className="card" style={{ padding: "16px" }}>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
           <input
-            placeholder="🔍 Search by title, ID, citizen..."
+            placeholder="Search by title, ID, citizen..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{ flex: "1", minWidth: "200px" }}
@@ -174,12 +189,13 @@ export default function AdminDashboard() {
             <button
               onClick={() => { setFilters({ status: "", category: "", emergency: "" }); setSearch(""); }}
               className="btn btn-secondary btn-sm"
+              style={{ gap: "4px", display: "inline-flex", alignItems: "center" }}
             >
-              ✕ Clear
+              <X size={12} /> Clear
             </button>
           )}
-          <button onClick={fetchData} className="btn btn-secondary btn-sm">
-            🔄 Refresh
+          <button onClick={fetchData} className="btn btn-secondary btn-sm" style={{ gap: "4px", display: "inline-flex", alignItems: "center" }}>
+            <RefreshCw size={12} /> Refresh
           </button>
         </div>
       </div>
@@ -188,7 +204,7 @@ export default function AdminDashboard() {
       {emergencies.length > 0 && (
         <section>
           <h2 style={{ fontSize: "16px", fontWeight: "700", color: "#dc2626", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
-            🚨 Emergency Complaints
+            <Siren size={16} color="#dc2626" /> Emergency Complaints
             <span style={{ background: "#fee2e2", color: "#dc2626", padding: "2px 8px", borderRadius: "20px", fontSize: "12px" }}>
               {emergencies.length}
             </span>
@@ -244,7 +260,7 @@ function ComplaintTable({ complaints, editId, editForm, setEditId, setEditForm, 
     return (
       <div className="table-container">
         <div className="empty-state">
-          <div className="empty-icon">📭</div>
+          <div className="empty-icon"><ClipboardList size={28} color="var(--text-muted)" /></div>
           <h3>No complaints found</h3>
           <p>No complaints match the current filters</p>
         </div>
@@ -289,8 +305,8 @@ function ComplaintTable({ complaints, editId, editForm, setEditId, setEditForm, 
               </td>
               <td><StatusBadge status={c.status} /></td>
               <td>
-                <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-secondary)" }}>
-                  {PRIORITY_LABELS[c.effectivePriority || c.priority]} {c.effectivePriority || c.priority}
+                <span style={{ fontSize: "12px", fontWeight: "600", color: PRIORITY_COLORS[c.effectivePriority || c.priority] || "var(--text-secondary)" }}>
+                  {c.effectivePriority || c.priority}
                 </span>
               </td>
               <td>
@@ -359,14 +375,16 @@ function ComplaintTable({ complaints, editId, editForm, setEditId, setEditForm, 
                         setEditForm({ status: c.status, department: c.department || "", note: "" });
                       }}
                       className="btn btn-secondary btn-sm"
+                      style={{ gap: "4px", display: "inline-flex", alignItems: "center" }}
                     >
-                      Edit
+                      <Pencil size={12} /> Edit
                     </button>
                     <button
                       onClick={() => handleDelete(c._id)}
                       className="btn btn-danger btn-sm"
+                      style={{ gap: "4px", display: "inline-flex", alignItems: "center" }}
                     >
-                      Del
+                      <Trash2 size={12} /> Del
                     </button>
                   </div>
                 )}
