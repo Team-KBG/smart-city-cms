@@ -308,7 +308,7 @@ export default function TrackComplaint() {
               <img
                 src={complaint.imageUrl.startsWith("http")
                   ? complaint.imageUrl
-                  : `http://localhost:5000${complaint.imageUrl}`}
+                  : `${import.meta.env.VITE_API_URL}${complaint.imageUrl}`}
                 alt="Complaint evidence"
                 style={{ maxHeight: "200px", borderRadius: "10px", objectFit: "cover", width: "100%" }}
                 onError={(e) => { e.target.style.display = "none"; }}
