@@ -5,6 +5,12 @@ export const COMPLAINT_CATEGORIES = [
   "Garbage Collection",
   "Street Lights",
   "Public Safety",
+  "Sewage",
+  "Noise Pollution",
+  "Air Pollution",
+  "Illegal Construction",
+  "Animal Menace",
+  "Encroachment",
 ];
 
 export const EMERGENCY_CATEGORIES = ["Fire", "Gas Leakage", "Accident"];
@@ -24,31 +30,43 @@ export const DEPARTMENTS = [
   "Electricity Department",
   "Sanitation Department",
   "Public Safety Department",
+  "Roads & Infrastructure Department",
+  "Environmental Department",
+  "Urban Planning Department",
 ];
 
 export const PUBLIC_VOTE_TYPES = [
   "New Park",
   "More Street Lights",
   "Speed Breakers",
+  "Road Repair",
+  "Public Toilet",
+  "Garbage Bin Installation",
+  "Tree Plantation",
+  "CCTV Camera",
+  "Bus Shelter",
+  "Other",
 ];
 
-export const STATUS_COLORS = {
-  Pending: "bg-yellow-100 text-yellow-800",
-  Assigned: "bg-blue-100 text-blue-800",
-  "In Progress": "bg-indigo-100 text-indigo-800",
-  Resolved: "bg-green-100 text-green-800",
-  Reopened: "bg-orange-100 text-orange-800",
+// Status color values for inline CSS usage
+export const STATUS_COLORS_CSS = {
+  Pending: { bg: "#fef3c7", color: "#92400e", border: "#fcd34d" },
+  Assigned: { bg: "#dbeafe", color: "#1e40af", border: "#93c5fd" },
+  "In Progress": { bg: "#ede9fe", color: "#5b21b6", border: "#c4b5fd" },
+  Resolved: { bg: "#dcfce7", color: "#14532d", border: "#86efac" },
+  Reopened: { bg: "#ffedd5", color: "#9a3412", border: "#fed7aa" },
 };
 
-export const PRIORITY_COLORS = {
-  Low: "bg-gray-100 text-gray-700",
-  Medium: "bg-amber-100 text-amber-800",
-  High: "bg-orange-100 text-orange-800",
-  Critical: "bg-red-100 text-red-800",
+// Priority color values for inline CSS usage
+export const PRIORITY_COLORS_CSS = {
+  Low: { bg: "#f1f5f9", color: "#475569", border: "#e2e8f0" },
+  Medium: { bg: "#fef3c7", color: "#92400e", border: "#fcd34d" },
+  High: { bg: "#fff7ed", color: "#c2410c", border: "#fed7aa" },
+  Critical: { bg: "#fef2f2", color: "#dc2626", border: "#fca5a5" },
 };
 
-export const LEVEL_COLORS = {
-  "Bronze Citizen": "text-amber-700 bg-amber-50",
-  "Silver Citizen": "text-slate-600 bg-slate-100",
-  "Gold Citizen": "text-yellow-700 bg-yellow-50",
+export const LEVEL_CONFIG = {
+  "Bronze Citizen": { bg: "#fef3c7", color: "#92400e", icon: "🥉" },
+  "Silver Citizen": { bg: "#f1f5f9", color: "#475569", icon: "🥈" },
+  "Gold Citizen": { bg: "#fef9c3", color: "#713f12", icon: "🥇" },
 };

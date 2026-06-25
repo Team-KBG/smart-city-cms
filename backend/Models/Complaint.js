@@ -64,15 +64,18 @@ const complaintSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Uses User ObjectIds for proper auth-based duplicate detection
     supportedBy: [
       {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
       },
     ],
     isEmergency: {
       type: Boolean,
       default: false,
     },
+    // citizenEmail kept for notification service compatibility
     citizenEmail: {
       type: String,
       default: "",
@@ -80,6 +83,12 @@ const complaintSchema = new mongoose.Schema(
     citizenName: {
       type: String,
       default: "",
+    },
+    // Link complaint to registered user
+    submittedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
     },
     assignedAt: {
       type: Date,
@@ -109,5 +118,6 @@ const complaintSchema = new mongoose.Schema(
 complaintSchema.index({ location: "2dsphere" });
 complaintSchema.index({ status: 1 });
 complaintSchema.index({ isEmergency: -1, createdAt: -1 });
+complaintSchema.index({ submittedBy: 1 });
 
 module.exports = mongoose.model("Complaint", complaintSchema);

@@ -44,7 +44,7 @@ exports.checkNearby = async (req, res) => {
   }
 };
 
-// Create a new complaint
+// Create a new complaint — uses req.user for citizen identity
 exports.createComplaint = async (req, res) => {
   try {
     const {
@@ -54,14 +54,17 @@ exports.createComplaint = async (req, res) => {
       address,
       longitude,
       latitude,
-      citizenEmail,
-      citizenName,
       supportExistingId,
     } = req.body;
 
     if (!title || !description) {
       return res.status(400).json({ success: false, message: "Title and description are required" });
     }
+
+    // Use authenticated user's identity
+    const citizenEmail = req.user.email;
+    const citizenName = req.user.name;
+    const userId = req.user._id;
 
     // If citizen wants to support existing complaint instead of creating new one
     if (supportExistingId) {
@@ -80,16 +83,17 @@ exports.createComplaint = async (req, res) => {
 
     const complaintData = {
       complaintId: generateComplaintId(),
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
       category: categorization.category,
       department: categorization.department || CATEGORY_DEPARTMENT_MAP[categorization.category],
-      address: address || "",
+      address: address ? address.trim() : "",
       priority,
       effectivePriority: priority,
       isEmergency,
-      citizenEmail: citizenEmail || "",
-      citizenName: citizenName || "",
+      citizenEmail,
+      citizenName,
+      submittedBy: userId,
       autoCategorized: !userCategory,
       statusHistory: [{ status: "Pending", note: "Complaint registered" }],
     };
@@ -107,9 +111,8 @@ exports.createComplaint = async (req, res) => {
 
     const complaint = await Complaint.create(complaintData);
 
-    if (citizenEmail) {
-      await onComplaintSubmitted(citizenEmail, citizenName);
-    }
+    // Award reputation points using authenticated user's email
+    await onComplaintSubmitted(citizenEmail, citizenName);
 
     await notifyComplaintRegistered(complaint);
 
@@ -123,22 +126,28 @@ exports.createComplaint = async (req, res) => {
   }
 };
 
-// Get all complaints (admin)
+// Get all complaints (admin sees all, citizens see their own + all in public view)
 exports.getAllComplaints = async (req, res) => {
   try {
-    const { status, category, emergency } = req.query;
+    const { status, category, emergency, mine } = req.query;
     const filter = {};
 
     if (status) filter.status = status;
     if (category) filter.category = category;
     if (emergency === "true") filter.isEmergency = true;
 
-    const complaints = await Complaint.find(filter).sort({
-      isEmergency: -1,
-      effectivePriority: -1,
-      supportCount: -1,
-      createdAt: -1,
-    });
+    // Citizens can filter to only their own complaints
+    if (mine === "true" && req.user.role !== "admin") {
+      filter.submittedBy = req.user._id;
+    }
+
+    const complaints = await Complaint.find(filter)
+      .populate("submittedBy", "name email")
+      .sort({
+        isEmergency: -1,   // Emergencies first
+        supportCount: -1,  // More supported = higher priority
+        createdAt: -1,     // Newest first
+      });
 
     res.status(200).json({ success: true, count: complaints.length, data: complaints });
   } catch (error) {
@@ -146,10 +155,11 @@ exports.getAllComplaints = async (req, res) => {
   }
 };
 
-// Track complaint by complaint ID
+// Track complaint by complaint ID (public)
 exports.getComplaintByComplaintId = async (req, res) => {
   try {
-    const complaint = await Complaint.findOne({ complaintId: req.params.complaintId });
+    const complaint = await Complaint.findOne({ complaintId: req.params.complaintId })
+      .populate("submittedBy", "name email");
 
     if (!complaint) {
       return res.status(404).json({ success: false, message: "Complaint not found" });
@@ -161,10 +171,11 @@ exports.getComplaintByComplaintId = async (req, res) => {
   }
 };
 
-// Get single complaint by MongoDB ID
+// Get single complaint by MongoDB ID (public)
 exports.getComplaintById = async (req, res) => {
   try {
-    const complaint = await Complaint.findById(req.params.id);
+    const complaint = await Complaint.findById(req.params.id)
+      .populate("submittedBy", "name email");
 
     if (!complaint) {
       return res.status(404).json({ success: false, message: "Complaint not found" });
@@ -176,7 +187,7 @@ exports.getComplaintById = async (req, res) => {
   }
 };
 
-// Update complaint (admin)
+// Update complaint (admin only)
 exports.updateComplaint = async (req, res) => {
   try {
     const complaint = await Complaint.findById(req.params.id);
@@ -219,7 +230,7 @@ exports.updateComplaint = async (req, res) => {
   }
 };
 
-// Delete complaint
+// Delete complaint (admin only)
 exports.deleteComplaint = async (req, res) => {
   try {
     const complaint = await Complaint.findByIdAndDelete(req.params.id);
@@ -233,28 +244,44 @@ exports.deleteComplaint = async (req, res) => {
   }
 };
 
-// Upvote / support a complaint
+// Upvote / support a complaint — uses req.user._id for deduplication
 exports.upvoteComplaint = async (req, res) => {
   try {
-    const { citizenEmail } = req.body;
+    const userId = req.user._id;
     const complaint = await Complaint.findById(req.params.id);
 
     if (!complaint) {
       return res.status(404).json({ success: false, message: "Complaint not found" });
     }
 
-    if (citizenEmail && complaint.supportedBy.includes(citizenEmail)) {
-      return res.status(400).json({ success: false, message: "You have already supported this complaint" });
+    // Prevent user from supporting their own complaint
+    if (complaint.submittedBy && complaint.submittedBy.toString() === userId.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot support your own complaint",
+      });
+    }
+
+    // Check if already supported using user ID (not email)
+    const alreadySupported = complaint.supportedBy.some(
+      (id) => id.toString() === userId.toString()
+    );
+
+    if (alreadySupported) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already supported this complaint",
+      });
     }
 
     complaint.supportCount += 1;
-    if (citizenEmail) {
-      complaint.supportedBy.push(citizenEmail);
-      await onComplaintUpvote(citizenEmail);
-    }
-
+    complaint.supportedBy.push(userId);
     complaint.effectivePriority = getEffectivePriority(complaint.priority, complaint.supportCount);
+
     await complaint.save();
+
+    // Award reputation to the supporter
+    await onComplaintUpvote(req.user.email);
 
     res.status(200).json({
       success: true,
@@ -266,12 +293,20 @@ exports.upvoteComplaint = async (req, res) => {
   }
 };
 
-// AI categorization preview
+// AI categorization preview (public)
 exports.previewCategorization = async (req, res) => {
   try {
     const { title, description } = req.body;
-    const result = suggestCategory(title, description, null);
-    const priority = detectPriority(title, description, result.category);
+
+    if (!title && !description) {
+      return res.status(400).json({
+        success: false,
+        message: "title or description is required",
+      });
+    }
+
+    const result = suggestCategory(title || "", description || "", null);
+    const priority = detectPriority(title || "", description || "", result.category);
 
     res.status(200).json({
       success: true,
@@ -282,7 +317,7 @@ exports.previewCategorization = async (req, res) => {
   }
 };
 
-// Heat map data
+// Heat map data (public)
 exports.getHeatMapData = async (req, res) => {
   try {
     const complaints = await Complaint.find(
@@ -296,7 +331,7 @@ exports.getHeatMapData = async (req, res) => {
   }
 };
 
-// Dashboard stats cards
+// Dashboard stats cards (public - used by admin dashboard)
 exports.getDashboardStats = async (req, res) => {
   try {
     const [total, pending, resolved, emergency] = await Promise.all([
@@ -309,6 +344,23 @@ exports.getDashboardStats = async (req, res) => {
     res.status(200).json({
       success: true,
       data: { total, pending, resolved, emergency },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get complaints created by the logged-in citizen
+exports.getMyComplaints = async (req, res) => {
+  try {
+    const complaints = await Complaint.find({ submittedBy: req.user._id })
+      .populate("submittedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: complaints.length,
+      data: complaints,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

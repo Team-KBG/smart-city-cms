@@ -60,6 +60,12 @@ const wastePickupRequestSchema = new mongoose.Schema(
       enum: ["Pending", "Scheduled", "Completed"],
       default: "Pending",
     },
+    // Link to registered user
+    submittedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   {
     timestamps: true,

@@ -7,6 +7,12 @@ const COMPLAINT_CATEGORIES = [
   "Garbage Collection",
   "Street Lights",
   "Public Safety",
+  "Sewage",
+  "Noise Pollution",
+  "Air Pollution",
+  "Illegal Construction",
+  "Animal Menace",
+  "Encroachment",
 ];
 
 const EMERGENCY_CATEGORIES = ["Fire", "Gas Leakage", "Accident"];
@@ -28,24 +34,41 @@ const DEPARTMENTS = [
   "Electricity Department",
   "Sanitation Department",
   "Public Safety Department",
+  "Roads & Infrastructure Department",
+  "Environmental Department",
+  "Urban Planning Department",
 ];
 
 const CATEGORY_DEPARTMENT_MAP = {
-  "Road Damage": "Public Safety Department",
+  "Road Damage": "Roads & Infrastructure Department",
   "Water Supply": "Water Department",
   Electricity: "Electricity Department",
   "Garbage Collection": "Sanitation Department",
   "Street Lights": "Electricity Department",
   "Public Safety": "Public Safety Department",
+  Sewage: "Water Department",
+  "Noise Pollution": "Environmental Department",
+  "Air Pollution": "Environmental Department",
+  "Illegal Construction": "Urban Planning Department",
+  "Animal Menace": "Public Safety Department",
+  Encroachment: "Urban Planning Department",
   Fire: "Public Safety Department",
   "Gas Leakage": "Public Safety Department",
   Accident: "Public Safety Department",
 };
 
+// Extended vote types to allow more community proposals
 const PUBLIC_VOTE_TYPES = [
   "New Park",
   "More Street Lights",
   "Speed Breakers",
+  "Road Repair",
+  "Public Toilet",
+  "Garbage Bin Installation",
+  "Tree Plantation",
+  "CCTV Camera",
+  "Bus Shelter",
+  "Other",
 ];
 
 const REPUTATION_LEVELS = {
