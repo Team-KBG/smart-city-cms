@@ -349,3 +349,20 @@ exports.getDashboardStats = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Get complaints created by the logged-in citizen
+exports.getMyComplaints = async (req, res) => {
+  try {
+    const complaints = await Complaint.find({ submittedBy: req.user._id })
+      .populate("submittedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: complaints.length,
+      data: complaints,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

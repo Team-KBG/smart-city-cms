@@ -10,6 +10,7 @@ router.get("/heatmap", complaintController.getHeatMapData);
 router.get("/nearby/check", complaintController.checkNearby);
 router.post("/categorize/preview", complaintController.previewCategorization);
 router.get("/track/:complaintId", complaintController.getComplaintByComplaintId);
+router.get("/my", protect, complaintController.getMyComplaints);
 router.get("/:id", complaintController.getComplaintById);
 
 // Citizen routes (authentication required)
